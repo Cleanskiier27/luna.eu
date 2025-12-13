@@ -14,7 +14,7 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
         with:
           fetch-depth: 0  # Fetch all history for all branches
           
@@ -43,7 +43,7 @@ jobs:
       - name: Sync DATACENTRA with current branch
         run: |
           git checkout DATACENTRA
-          git merge ${{ github.ref_name }} --no-edit || echo "Already up to date"
+          git merge origin/${{ github.ref_name }} --no-edit || echo "Already up to date"
           
       - name: Push DATACENTRA branch
         run: |

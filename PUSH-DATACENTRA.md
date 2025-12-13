@@ -22,10 +22,11 @@ git push -u origin DATACENTRA
 ```
 
 ### Method 2: Using the Provided Script
-Execute the automated script:
+The script is already executable. Run it directly:
 ```bash
 ./push-datacentra.sh
 ```
+Note: The script has executable permissions (755) set in the repository.
 
 ## Current State
 - ✅ DATACENTRA branch created locally
