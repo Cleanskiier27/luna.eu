@@ -148,8 +148,9 @@ function App() {
                     </div>
                 )}
 
-            {/* Scanline Effect Overlay */}
-            <div className="scanline"></div>
+                {/* Scanline Effect Overlay */}
+                <div className="scanline"></div>
+            </div>
         </div>
     )
 }
