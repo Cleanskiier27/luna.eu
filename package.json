@@ -32,6 +32,7 @@
     "start:api:universal": "node api/server-universal.js",
     "dev": "node --watch server.js",
     "dev:audio": "node --watch server-audio.js",
+    "dev:local": "powershell -ExecutionPolicy Bypass -File start-local-dev.ps1",
     "build": "npm install",
     "test": "echo 'No tests specified'",
     "docker:build": "docker build -t networkbuster:latest .",
