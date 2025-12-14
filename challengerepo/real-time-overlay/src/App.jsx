@@ -3,10 +3,12 @@ import AvatarWorld from './components/AvatarWorld'
 import SatelliteMap from './components/SatelliteMap'
 import CameraFeed from './components/CameraFeed'
 import ConnectionGraph from './components/ConnectionGraph'
-import { Monitor, Cpu, Map as MapIcon, Video } from 'lucide-react'
+import ImmersiveReader from './components/ImmersiveReader'
+import { Monitor, Cpu, Map as MapIcon, Video, Eye, Brain } from 'lucide-react'
 
 function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
+    const [aiTrainingEnabled, setAiTrainingEnabled] = useState(false);
 
     return (
         <div className="relative w-screen h-screen overflow-hidden">
@@ -90,15 +92,65 @@ function App() {
                                     <span className="text-gray-400">LATENCY</span>
                                     <span className="text-[#00ff00]">12 MS</span>
                                 </div>
+                                
+                                {/* Immersive Reader Toggle */}
+                                <button
+                                    onClick={() => setActiveTab(activeTab === 'immersive' ? 'dashboard' : 'immersive')}
+                                    className={`w-full mt-2 p-2 rounded flex items-center justify-center gap-2 transition ${
+                                        activeTab === 'immersive'
+                                            ? 'bg-[#667eea] text-white'
+                                            : 'bg-white/5 text-[#00f0ff] hover:bg-white/10'
+                                    }`}
+                                >
+                                    <Eye size={14} />
+                                    <span className="text-xs font-bold">IMMERSIVE READER</span>
+                                </button>
+                                
+                                {/* AI Training Toggle */}
+                                <button
+                                    onClick={() => setAiTrainingEnabled(!aiTrainingEnabled)}
+                                    className={`w-full mt-1 p-2 rounded flex items-center justify-center gap-2 transition ${
+                                        aiTrainingEnabled
+                                            ? 'bg-[#764ba2] text-white'
+                                            : 'bg-white/5 text-[#ff003c] hover:bg-white/10'
+                                    }`}
+                                >
+                                    <Brain size={14} />
+                                    <span className="text-xs font-bold">{aiTrainingEnabled ? 'AI ON' : 'AI OFF'}</span>
+                                </button>
                             </div>
                         </div>
                     </div>
 
                 </main>
-            </div>
+                
+                {/* Immersive Reader Panel */}
+                {activeTab === 'immersive' && (
+                    <div className="fixed inset-4 z-50 pointer-events-auto overflow-auto">
+                        <div className="bg-black/95 border border-[#667eea] rounded-lg p-4 backdrop-blur">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-lg font-bold text-[#667eea] flex items-center gap-2">
+                                    <Eye size={20} />
+                                    IMMERSIVE READER - REAL-TIME DATA STREAM
+                                </h2>
+                                <button
+                                    onClick={() => setActiveTab('dashboard')}
+                                    className="text-[#ff003c] hover:text-white text-xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            <ImmersiveReader 
+                                overlayContext={{ activeTab }}
+                                aiMode={aiTrainingEnabled}
+                            />
+                        </div>
+                    </div>
+                )}
 
-            {/* Scanline Effect Overlay */}
-            <div className="scanline"></div>
+                {/* Scanline Effect Overlay */}
+                <div className="scanline"></div>
+            </div>
         </div>
     )
 }

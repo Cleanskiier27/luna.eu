@@ -4,14 +4,51 @@
   "type": "module",
   "description": "Production server for networkbuster apps",
   "main": "server.js",
+  "homepage": "https://networkbuster.net",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NetworkBuster/networkbuster.net.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NetworkBuster/networkbuster.net/issues"
+  },
+  "author": "NetworkBuster Contributors",
+  "license": "MIT",
+  "keywords": [
+    "networkbuster",
+    "server",
+    "express",
+    "node",
+    "networking"
+  ],
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "build": "npm install",
+    "test": "echo 'No tests specified'",
+    "docker:build": "docker build -t networkbuster:latest .",
+    "docker:run": "docker run -p 3000:3000 networkbuster:latest",
+    "docker:compose:up": "docker-compose up -d",
+    "docker:compose:down": "docker-compose down"
   },
   "engines": {
-    "node": "24.x"
+    "node": "24.x",
+    "npm": ">=10.0.0"
   },
   "dependencies": {
-    "express": "^4.22.1"
+    "express": "^5.2.1"
+  },
+  "files": [
+    "server.js",
+    "api/",
+    "web-app/",
+    "dashboard/",
+    "docs/",
+    "README.md",
+    "LICENSE"
+  ],
+  "preferGlobal": false,
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   }
 }
