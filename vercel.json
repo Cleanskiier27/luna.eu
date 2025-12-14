@@ -10,6 +10,22 @@
       "dest": "/server.js?path=$1"
     },
     {
+      "src": "^/overlay/(.*\\..*)",
+      "dest": "/challengerepo/real-time-overlay/dist/$1"
+    },
+    {
+      "src": "^/overlay(/.*)?$",
+      "dest": "/challengerepo/real-time-overlay/dist/index.html"
+    },
+    {
+      "src": "^/nasa/(.*\\..*)",
+      "dest": "/challengerepo/real-time-overlay/dist/$1"
+    },
+    {
+      "src": "^/nasa(/.*)?$",
+      "dest": "/challengerepo/real-time-overlay/dist/index.html"
+    },
+    {
       "src": "/(.*\\..*)",
       "dest": "/$1"
     },
@@ -29,6 +45,24 @@
         {
           "key": "Cache-Control",
           "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/overlay/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/nasa/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
         }
       ]
     }

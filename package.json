@@ -70,7 +70,9 @@
     "flash:build": "docker-compose -f docker-compose-flash.yml build",
     "flash:down": "docker-compose -f docker-compose-flash.yml down",
     "chatbot": "node chatbot-server.js",
-    "chatbot:dev": "node --watch chatbot-server.js"
+    "chatbot:dev": "node --watch chatbot-server.js",
+    "build:overlay": "cd challengerepo/real-time-overlay && npm install && npm run build",
+    "build:all": "npm run build:overlay"
   },
   "engines": {
     "node": "24.x",
