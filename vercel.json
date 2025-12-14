@@ -2,12 +2,6 @@
   "version": 2,
   "buildCommand": "npm run build:all || true",
   "devCommand": "npm start",
-  "functions": {
-    "server.js": {
-      "runtime": "nodejs24.x@latest",
-      "maxDuration": 30
-    }
-  },
   "routes": [
     {
       "src": "/(.*)",
