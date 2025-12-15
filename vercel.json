@@ -3,21 +3,6 @@
   "buildCommand": "npm run build:all || npm run build || true",
   "devCommand": "npm start",
   "installCommand": "npm ci --legacy-peer-deps || npm install",
-  "nodeVersion": "24.x",
-  "routes": [
-    {
-      "src": "^/api/(.*)",
-      "dest": "/server.js?path=$1"
-    },
-    {
-      "src": "/(.*\\..*)",
-      "dest": "/$1"
-    },
-    {
-      "src": "/.*",
-      "dest": "/index.html"
-    }
-  ],
   "env": {
     "NODE_ENV": "production",
     "VERCEL_ENV": "production"
@@ -31,12 +16,6 @@
           "value": "no-cache, no-store, must-revalidate"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/:path*",
-      "destination": "/index.html"
     }
   ]
 }
