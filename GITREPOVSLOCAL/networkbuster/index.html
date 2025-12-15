@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NetworkBuster Admin Device Registry - Professional OS imaging tool">
+    <title>NetworkBuster Admin Device Registry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="modals.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="background-effects">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+            <div class="grid-overlay"></div>
+        </div>
+
+        <header class="app-header">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 48 48" fill="none">
+                        <circle cx="24" cy="24" r="20" stroke="url(#lg)" stroke-width="3" />
+                        <path d="M24 8V24L34 34" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" />
+                        <circle cx="24" cy="24" r="4" fill="url(#lg)" />
+                        <defs>
+                            <linearGradient id="lg" x1="4" y1="4" x2="44" y2="44">
+                                <stop stop-color="#6366f1" />
+                                <stop offset="1" stop-color="#a855f7" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>NetworkBuster</h1>
+                    <span class="logo-subtitle">Admin Device Registry</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon" id="settingsBtn" title="Settings">⚙️</button>
+                <button class="btn-icon" id="helpBtn" title="Help">❓</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="step-indicator">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div><span>Select OS</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div><span>Select Device</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div><span>Configure</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div><span>Flash</span>
+                </div>
+            </div>
+
+            <div class="selection-grid">
+                <div class="selection-card" id="osCard">
+                    <div class="card-icon">💻</div>
+                    <div class="card-content">
+                        <h3>Operating System</h3>
+                        <p class="card-description" id="osSelection">Choose an OS to install</p>
+                    </div>
+                    <button class="btn-select" id="selectOsBtn">Select →</button>
+                </div>
+
+                <div class="selection-card" id="deviceCard">
+                    <div class="card-icon">💾</div>
+                    <div class="card-content">
+                        <h3>Storage Device</h3>
+                        <p class="card-description" id="deviceSelection">Select target device</p>
+                    </div>
+                    <button class="btn-select" id="selectDeviceBtn">Select →</button>
+                </div>
+
+                <div class="selection-card" id="configCard">
+                    <div class="card-icon">⚙️</div>
+                    <div class="card-content">
+                        <h3>Configuration</h3>
+                        <p class="card-description" id="configStatus">Optional settings</p>
+                    </div>
+                    <button class="btn-select" id="configBtn">Configure →</button>
+                </div>
+            </div>
+
+            <div class="flash-section">
+                <button class="btn-flash" id="flashBtn" disabled>⚡ Flash Device</button>
+                <p class="flash-hint">Select an OS and device to begin</p>
+            </div>
+
+            <!-- AI Agent Mode Dashboard -->
+            <div class="agent-dashboard" id="agentDashboard" style="display: none;">
+                <div class="agent-header">
+                    <div class="agent-status-indicator">
+                        <span class="status-dot" id="agentStatusDot"></span>
+                        <span class="status-text" id="agentStatusText">Agent Idle</span>
+                    </div>
+                    <div class="agent-controls">
+                        <button class="btn-agent-ctrl" id="agentPause" title="Pause">⏸️</button>
+                        <button class="btn-agent-ctrl" id="agentStop" title="Stop">⏹️</button>
+                        <button class="btn-agent-ctrl" id="agentStart" title="Start">▶️</button>
+                    </div>
+                </div>
+
+                <div class="agent-stats">
+                    <div class="stat-card">
+                        <span class="stat-number" id="agentProcessed">0</span>
+                        <span class="stat-label">Processed</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="agentQueued">0</span>
+                        <span class="stat-label">In Queue</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="agentUptime">00:00</span>
+                        <span class="stat-label">Uptime</span>
+                    </div>
+                </div>
+
+                <div class="agent-queue">
+                    <h4>📋 Device Queue</h4>
+                    <div class="queue-list" id="agentQueue">
+                        <div class="queue-empty">No devices in queue</div>
+                    </div>
+                </div>
+
+                <div class="agent-activity">
+                    <h4>📊 Activity Feed</h4>
+                    <div class="activity-feed" id="activityFeed">
+                        <div class="activity-item">
+                            <span class="activity-time">--:--</span>
+                            <span class="activity-msg">Agent ready - waiting for activation</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agent-options">
+                    <label class="agent-option">
+                        <input type="checkbox" id="agentAutoSwitch" checked>
+                        Auto-switch to next device
+                    </label>
+                    <label class="agent-option">
+                        <input type="checkbox" id="agentAutoFlash">
+                        Auto-flash when device connected
+                    </label>
+                    <label class="agent-option">
+                        <input type="checkbox" id="agentNotify" checked>
+                        Notify on completion
+                    </label>
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <div class="footer-left">
+                <p>&copy; 2024 NetworkBuster Admin Device Registry</p>
+                <p class="version">Version 1.0.0</p>
+            </div>
+            <div class="agent-toggle-section">
+                <button class="btn-agent-mode" id="agentModeBtn" onclick="toggleAgentMode()">
+                    🤖 Enable Agent Mode
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <div class="modal" id="osModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Select Operating System</h2><button class="btn-close" id="closeOsModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-box"><input type="text" id="osSearch" placeholder="🔍 Search operating systems...">
+                </div>
+                <div class="os-categories">
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="linux">Linux</button>
+                    <button class="category-btn" data-category="windows">Windows</button>
+                    <button class="category-btn" data-category="utility">Utilities</button>
+                </div>
+                <div class="os-list" id="osList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="deviceModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Select Storage Device</h2><button class="btn-close" id="closeDeviceModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="device-warning">⚠️ Warning: All data on the selected device will be erased!</div>
+                <button class="btn-refresh" id="refreshDevices">🔄 Refresh Devices</button>
+                <div class="device-list" id="deviceList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="configModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Configuration Options</h2><button class="btn-close" id="closeConfigModal">✕</button>
+            </div>
+            <div class="modal-body" id="configBody"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="resetConfig">Reset</button>
+                <button class="btn-primary" id="saveConfig">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="flashModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="flashTitle">Flashing...</h2>
+            </div>
+            <div class="modal-body flash-progress-body">
+                <div class="progress-ring-container">
+                    <svg class="progress-ring" viewBox="0 0 120 120">
+                        <circle class="progress-ring-bg" cx="60" cy="60" r="54" />
+                        <circle class="progress-ring-fill" cx="60" cy="60" r="54" id="progressRing" />
+                    </svg>
+                    <div class="progress-text"><span id="progressPercent">0%</span></div>
+                </div>
+                <p class="progress-status" id="progressStatus">Initializing...</p>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+            <div class="modal-footer" id="flashFooter" style="display:none;"><button class="btn-primary"
+                    id="flashDone">Done</button></div>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2><button class="btn-close" id="closeSettingsModal">✕</button>
+            </div>
+            <div class="modal-body" id="settingsBody"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="gpu-satellite-module.js"></script>
+</body>
+
+</html>
