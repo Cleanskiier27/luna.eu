@@ -1,0 +1,34 @@
+﻿# Node / build artifacts
+node_modules/
+.env
+.env.local
+.env.*.local
+dist/
+build/
+*.log
+.DS_Store
+.vercel
+
+# Misc files from other repo
+.gitattributes
+GITREPOVSLOCAL/
+nbapp/
+skacrack.zip
+
+# Gradle / Android
+.gradle/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+output.json
+*.iml
+.idea/
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+*.jks
+*.keystore
+google-services.json
+*.hprof
