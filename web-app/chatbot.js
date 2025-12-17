@@ -1,3 +1,93 @@
+// Command Index for NetBot Command Search
+const COMMAND_INDEX = [
+  {
+    name: 'Flash Deploy',
+    keywords: ['deploy', 'vercel', 'production', 'push', 'release'],
+    command: 'flash_commands.bat deploy',
+    description: 'Deploy to Vercel production in one command. Automatically commits changes with timestamp.'
+  },
+  {
+    name: 'Flash Sync',
+    keywords: ['sync', 'branches', 'merge', 'conflict', 'main', 'bigtree'],
+    command: 'flash_commands.bat sync',
+    description: 'Synchronize main and bigtree branches automatically with conflict resolution.'
+  },
+  {
+    name: 'Flash Dev',
+    keywords: ['dev', 'development', 'start', 'hot-reload', 'server'],
+    command: 'npm start',
+    description: 'Start development server with hot-reload and instant feedback.'
+  },
+  {
+    name: 'Flash Build',
+    keywords: ['build', 'production', 'compile'],
+    command: 'flash_commands.bat build',
+    description: 'Build all applications (dashboard, overlay, etc) for production.'
+  },
+  {
+    name: 'Flash Test',
+    keywords: ['test', 'validate', 'check'],
+    command: 'flash_commands.bat test',
+    description: 'Run validation checks and tests across the codebase.'
+  },
+  {
+    name: 'Flash Clean',
+    keywords: ['clean', 'dependencies', 'reinstall', 'fix'],
+    command: 'flash_commands.bat clean',
+    description: 'Clean all dependencies and reinstall fresh. Useful for resolving issues.'
+  },
+  {
+    name: 'Flash Status',
+    keywords: ['status', 'git', 'deploy', 'info'],
+    command: 'flash_commands.bat status',
+    description: 'Check git status and deployment information at a glance.'
+  },
+  {
+    name: 'Flash Backup',
+    keywords: ['backup', 'compress', 'archive', 'save'],
+    command: 'flash_commands.bat backup',
+    description: 'Create compressed backup of the project (excludes node_modules and .git).'
+  },
+  {
+    name: 'Flash Analyze',
+    keywords: ['analyze', 'analyser', 'analysis', 'files', 'insights'],
+    command: 'flash_commands.bat analyze',
+    description: 'AI automatically analyzes your codebase, counts files, and provides insights.'
+  },
+  {
+    name: 'Flash Suggest',
+    keywords: ['suggest', 'recommend', 'advice', 'tips', 'best practices'],
+    command: 'flash_commands.bat suggest',
+    description: 'AI suggests code optimizations and best practices for your project.'
+  },
+  {
+    name: 'Flash Docs',
+    keywords: ['docs', 'documentation', 'generate', 'markdown'],
+    command: 'flash_commands.bat docs',
+    description: 'AI generates project documentation automatically in markdown format.'
+  },
+  {
+    name: 'Flash Optimize',
+    keywords: ['optimize', 'performance', 'compression', 'cache'],
+    command: 'flash_commands.bat optimize',
+    description: 'AI applies performance optimizations including compression and caching.'
+  }
+];
+
+function searchCommandIndex(userInput) {
+  const input = userInput.toLowerCase();
+  // Score commands by keyword matches
+  const matches = COMMAND_INDEX.map(cmd => {
+    let score = 0;
+    for (const kw of cmd.keywords) {
+      if (input.includes(kw)) score++;
+    }
+    return { ...cmd, score };
+  }).filter(cmd => cmd.score > 0);
+  // Sort by score descending
+  matches.sort((a, b) => b.score - a.score);
+  return matches.slice(0, 3); // Return top 3
+}
 // NetworkBuster AI Chatbot - Client-side module
 // Trained knowledge base for NetworkBuster ecosystem
 
@@ -104,6 +194,34 @@ const SENTIMENT_WORDS = {
 };
 
 class NetworkBusterChatbot {
+      // Enhanced: Suggest commands if relevant
+      addCommandSuggestions(userInput) {
+        const matches = searchCommandIndex(userInput);
+        if (matches.length === 0) return;
+        const messagesContainer = document.getElementById('chatbot-messages');
+        if (!messagesContainer) return;
+        const suggestionDiv = document.createElement('div');
+        suggestionDiv.className = 'chatbot-message bot-message';
+        suggestionDiv.innerHTML = '<b>Relevant Commands:</b><ul style="margin:8px 0 0 16px;">' +
+          matches.map(cmd => `<li><b>${cmd.name}:</b> <code>${cmd.command}</code><br><span style='font-size:0.95em;color:#8b949e;'>${cmd.description}</span></li>`).join('') + '</ul>';
+        messagesContainer.appendChild(suggestionDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    setEnabled(enabled) {
+      const container = this.container;
+      if (!container) return;
+      if (enabled) {
+        container.style.display = '';
+        // Optionally re-enable input
+        const input = container.querySelector('#chatbot-input');
+        if (input) input.disabled = false;
+      } else {
+        container.style.display = 'none';
+        // Optionally disable input
+        const input = container.querySelector('#chatbot-input');
+        if (input) input.disabled = true;
+      }
+    }
   constructor(containerId) {
     this.container = document.getElementById(containerId);
     this.conversationHistory = [];
@@ -179,18 +297,15 @@ class NetworkBusterChatbot {
 
   handleUserInput(message) {
     if (!message.trim()) return;
-    
     this.addMessage('user', message);
     this.conversationHistory.push({ role: 'user', content: message });
-    
     this.showTyping();
-    
-    // Simulate AI processing time
     const responseTime = Math.random() * 1000 + 500;
     setTimeout(() => {
       const response = this.generateResponse(message);
       this.hideTyping();
       this.addMessage('bot', response);
+      this.addCommandSuggestions(message);
       this.conversationHistory.push({ role: 'bot', content: response });
     }, responseTime);
   }
@@ -322,5 +437,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('netbot-chat');
   if (container) {
     window.netbot = new NetworkBusterChatbot('netbot-chat');
+    // Listen for Net Bot toggle from main UI
+    const toggleBtn = document.getElementById('toggle-netbot');
+    const netbotStatus = document.getElementById('netbot-status');
+    let netbotOn = true;
+    if (toggleBtn && window.netbot) {
+      toggleBtn.addEventListener('click', function() {
+        netbotOn = !netbotOn;
+        window.netbot.setEnabled(netbotOn);
+        if (netbotStatus) netbotStatus.textContent = netbotOn ? 'On' : 'Off';
+      });
+    }
   }
 });

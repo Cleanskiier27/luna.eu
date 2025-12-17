@@ -32,6 +32,7 @@
                 <a href="/projects.html" class="nav-link">🚀 Projects</a>
                 <a href="/technology.html" class="nav-link">⚡ Technology</a>
                 <a href="/documentation.html" class="nav-link">📖 Docs</a>
+                <button id="toggle-netbot" class="nav-link" style="margin-left:16px;cursor:pointer;background:#0f3460;color:#fff;border:none;padding:8px 16px;border-radius:8px;">🤖 Net Bot: <span id="netbot-status">On</span></button>
                 
                 <!-- Apps Dropdown -->
                 <div class="nav-dropdown">
@@ -52,6 +53,8 @@
                         <a href="#calculator" class="dropdown-item">🧮 Calculator</a>
                         <a href="#data" class="dropdown-item">💾 Data Center</a>
                         <a href="/flash-commands.html" class="dropdown-item">⚡ Flash Commands</a>
+                        <a href="/packages.html" class="dropdown-item">📦 Packages</a>
+                        <a href="/hud.html" class="dropdown-item">🛰️ Function HUD</a>
                         <a href="/blog/" class="dropdown-item">📝 Blog</a>
                     </div>
                 </div>
@@ -432,8 +435,35 @@
 
     <!-- AI Chatbot -->
     <div id="netbot-chat"></div>
+    <!-- Floating Documentation Button for quick access -->
+    <a href="/documentation.html" id="floating-docs-btn" title="Open Documentation">📖 Docs</a>
 
-    <script src="script.js"></script>
-    <script src="chatbot.js"></script>
+        <script src="script.js"></script>
+        <script src="chatbot.js"></script>
+        <script>
+        // Net Bot Toggle Button Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('toggle-netbot');
+            const netbotChat = document.getElementById('netbot-chat');
+            const netbotStatus = document.getElementById('netbot-status');
+            let netbotOn = true;
+            if (toggleBtn && netbotChat) {
+                toggleBtn.addEventListener('click', function() {
+                    netbotOn = !netbotOn;
+                    if (netbotOn) {
+                        netbotChat.style.display = '';
+                        netbotStatus.textContent = 'On';
+                    } else {
+                        netbotChat.style.display = 'none';
+                        netbotStatus.textContent = 'Off';
+                    }
+                });
+            }
+        });
+        // Floating Docs Button Style
+        const style = document.createElement('style');
+        style.innerHTML = `#floating-docs-btn { position: fixed; bottom: 100px; right: 30px; background: #6366f1; color: #fff; padding: 14px 22px; border-radius: 50px; box-shadow: 0 4px 16px rgba(99,102,241,0.2); font-size: 1.2rem; z-index: 10001; text-decoration: none; transition: background 0.2s; } #floating-docs-btn:hover { background: #4f46e5; }`;
+        document.head.appendChild(style);
+        </script>
 </body>
 </html>
