@@ -7,22 +7,18 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: pages-main
   cancel-in-progress: true
 
 jobs:
-  test:
+  publish:
     runs-on: ubuntu-24.04
-    outputs:
-      documentation_ready: ${{ steps.docs.outputs.ready }}
     steps:
       - uses: actions/checkout@v5
-      - name: Validate static application
+      - name: Test and document static application
         shell: bash
         run: |
           set -euo pipefail
@@ -35,43 +31,35 @@ jobs:
           test -f GITREPOVSLOCAL/admin.html
           test -f GITREPOVSLOCAL/azure-devops-dashboard.html
           test -f GITREPOVSLOCAL/post/index.html
-          grep -q 'id="pipelines"' GITREPOVSLOCAL/azure-devops-dashboard.html
-          grep -q 'aiplatform.googleapis.com' GITREPOVSLOCAL/post/index.html
+          test -f GITREPOVSLOCAL/documentation.html
           test -f GITREPOVSLOCAL/imported-programs/index.html
           test -f GITREPOVSLOCAL/imported-programs/flash-commands.html
+          grep -q 'id="pipelines"' GITREPOVSLOCAL/azure-devops-dashboard.html
+          grep -q 'aiplatform.googleapis.com' GITREPOVSLOCAL/post/index.html
+          grep -q 'PHASE 6' GITREPOVSLOCAL/documentation.html
+          grep -q 'Documentation' GITREPOVSLOCAL/index.html
           ! grep -R -nE 'gho_[A-Za-z0-9]+|access_token=[A-Za-z0-9._-]+' GITREPOVSLOCAL README.md
           python3 - <<'PY'
           from html.parser import HTMLParser
           from pathlib import Path
-          class Parser(HTMLParser):
-              pass
           for path in Path('GITREPOVSLOCAL').rglob('*.html'):
-              Parser().feed(path.read_text(encoding='utf-8'))
+              HTMLParser().feed(path.read_text(encoding='utf-8'))
               print(f'validated {path}')
           PY
-      - name: Documentation phase
-        id: docs
+          echo 'documentation phase complete'
+      - name: Publish warning-free gh-pages branch
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
-          test -s GITREPOVSLOCAL/documentation.html
-          grep -q 'PHASE 6' GITREPOVSLOCAL/documentation.html
-          grep -q 'Documentation' GITREPOVSLOCAL/index.html
-          echo 'ready=true' >> "$GITHUB_OUTPUT"
-      - name: Upload Pages artifact
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: GITREPOVSLOCAL
-
-  deploy:
-    if: github.event_name != 'pull_request'
-    needs: test
-    runs-on: ubuntu-24.04
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          publish_dir=$(mktemp -d)
+          cp -a GITREPOVSLOCAL/. "$publish_dir/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch --orphan gh-pages
+          git rm -rf . >/dev/null
+          cp -a "$publish_dir/." .
+          touch .nojekyll
+          git add -A
+          git commit -m "Publish LunaRecycle ${GITHUB_SHA}" >/dev/null
+          git push --force origin gh-pages
