@@ -52,6 +52,8 @@ jobs:
               print(f'validated {path}')
           PY
           echo 'documentation phase complete'
+          python3 node.py inspect
+          python3 node.py publish
       - name: Publish warning-free gh-pages branch
         if: github.event_name != 'pull_request'
         shell: bash

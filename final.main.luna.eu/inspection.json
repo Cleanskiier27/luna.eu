@@ -1,0 +1,154 @@
+{
+  "build": "final.main.luna.eu",
+  "owner": "cleanskiier27",
+  "generatedUtc": "2026-11-17T20:38:26.259492+00:00",
+  "environment": {
+    "node": "C:\\Program Files\\nodejs\\node.EXE",
+    "npm": "C:\\Program Files\\nodejs\\npm.cmd",
+    "python": "C:\\Python314\\python.EXE"
+  },
+  "siteFileCount": 46,
+  "siteSha256": "ef0ed982b7bc7f0fda55cca07d18028802ad6013ccec83969a389bc57069a1be",
+  "checks": [
+    {
+      "name": "required-files",
+      "passed": true,
+      "missing": []
+    },
+    {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "--check",
+        "C:\\Users\\daypi\\OneDrive\\Desktop\\luna.eu\\GITREPOVSLOCAL\\imported-programs\\audio-bridge.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "name": "syntax:imported-programs\\audio-bridge.js"
+    },
+    {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "--check",
+        "C:\\Users\\daypi\\OneDrive\\Desktop\\luna.eu\\GITREPOVSLOCAL\\imported-programs\\chatbot.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "name": "syntax:imported-programs\\chatbot.js"
+    },
+    {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "--check",
+        "C:\\Users\\daypi\\OneDrive\\Desktop\\luna.eu\\GITREPOVSLOCAL\\imported-programs\\navigation.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "name": "syntax:imported-programs\\navigation.js"
+    },
+    {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "--check",
+        "C:\\Users\\daypi\\OneDrive\\Desktop\\luna.eu\\GITREPOVSLOCAL\\imported-programs\\recycle.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "name": "syntax:imported-programs\\recycle.js"
+    },
+    {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "--check",
+        "C:\\Users\\daypi\\OneDrive\\Desktop\\luna.eu\\GITREPOVSLOCAL\\imported-programs\\script.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "name": "syntax:imported-programs\\script.js"
+    },
+    {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "--check",
+        "C:\\Users\\daypi\\OneDrive\\Desktop\\luna.eu\\GITREPOVSLOCAL\\networkbuster\\app.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "name": "syntax:networkbuster\\app.js"
+    },
+    {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "--check",
+        "C:\\Users\\daypi\\OneDrive\\Desktop\\luna.eu\\GITREPOVSLOCAL\\networkbuster\\gpu-satellite-examples.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "name": "syntax:networkbuster\\gpu-satellite-examples.js"
+    },
+    {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "--check",
+        "C:\\Users\\daypi\\OneDrive\\Desktop\\luna.eu\\GITREPOVSLOCAL\\networkbuster\\gpu-satellite-module.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "name": "syntax:networkbuster\\gpu-satellite-module.js"
+    },
+    {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "--check",
+        "C:\\Users\\daypi\\OneDrive\\Desktop\\luna.eu\\GITREPOVSLOCAL\\networkbuster\\gpu-satellite-tests.js"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "name": "syntax:networkbuster\\gpu-satellite-tests.js"
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.EXE",
+        "-m",
+        "compileall",
+        "-q",
+        "C:\\Users\\daypi\\OneDrive\\Desktop\\luna.eu\\node.py"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "name": "python:compile"
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.EXE",
+        "-c",
+        "from html.parser import HTMLParser; from pathlib import Path; [HTMLParser().feed(p.read_text(encoding='utf-8', errors='replace')) for p in Path('C:\\\\Users\\\\daypi\\\\OneDrive\\\\Desktop\\\\luna.eu\\\\GITREPOVSLOCAL').rglob('*.html')]; print('HTML validated')"
+      ],
+      "exitCode": 0,
+      "stdout": "HTML validated\n",
+      "stderr": "",
+      "passed": true,
+      "name": "html:parse"
+    }
+  ],
+  "passed": true
+}

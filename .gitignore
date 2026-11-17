@@ -32,5 +32,8 @@ google-services.json
 # Android Profiling
 *.hprof
 
+# Python cache and final build output
+__pycache__/
+
 # Locally generated HTML fetcher output
 GITREPOVSLOCAL/html-fetch-tool/collected/
