@@ -54,6 +54,7 @@ jobs:
           echo 'documentation phase complete'
           python3 node.py inspect
           python3 node.py publish
+          git checkout -- final.main.luna.eu
       - name: Publish warning-free gh-pages branch
         if: github.event_name != 'pull_request'
         shell: bash
