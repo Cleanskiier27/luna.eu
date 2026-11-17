@@ -31,6 +31,9 @@ jobs:
           test -f GITREPOVSLOCAL/networkbuster/index.css
           test -f GITREPOVSLOCAL/networkbuster/history.html
           test -f GITREPOVSLOCAL/html-fetch-tool/index.html
+          test -f GITREPOVSLOCAL/launch.html
+          test -f GITREPOVSLOCAL/imported-programs/index.html
+          test -f GITREPOVSLOCAL/imported-programs/flash-commands.html
           ! grep -R -nE 'gho_[A-Za-z0-9]+|access_token=[A-Za-z0-9._-]+' GITREPOVSLOCAL README.md
           python3 - <<'PY'
           from html.parser import HTMLParser

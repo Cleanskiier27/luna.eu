@@ -1,0 +1,727 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetworkBuster Master Dashboard Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #a0aec0;
+            font-size: 1.1em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+        }
+
+        .card-title .icon {
+            font-size: 1.5em;
+        }
+
+        /* Connection Status */
+        .connection-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .connection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 4px solid #4299e1;
+            transition: all 0.3s;
+        }
+
+        .connection-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .connection-item.active {
+            border-left-color: #48bb78;
+            background: rgba(72, 187, 120, 0.1);
+        }
+
+        .connection-item.inactive {
+            border-left-color: #f56565;
+            background: rgba(245, 101, 101, 0.1);
+        }
+
+        .connection-info {
+            flex: 1;
+        }
+
+        .connection-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 1.05em;
+        }
+
+        .connection-url {
+            font-size: 0.85em;
+            color: #a0aec0;
+            font-family: monospace;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.active {
+            background: #48bb78;
+        }
+
+        .status-indicator.inactive {
+            background: #f56565;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #48bb78;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #f56565;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: #4299e1;
+        }
+
+        .btn-info:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* System Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #a0aec0;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Activity Log */
+        .activity-log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-left: 3px solid #4299e1;
+            padding-left: 12px;
+        }
+
+        .log-entry.success {
+            border-left-color: #48bb78;
+        }
+
+        .log-entry.error {
+            border-left-color: #f56565;
+        }
+
+        .log-entry.warning {
+            border-left-color: #ed8936;
+        }
+
+        .log-time {
+            color: #718096;
+            margin-right: 10px;
+        }
+
+        /* Connection Form */
+        .connection-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #cbd5e0;
+        }
+
+        .form-group input {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.95em;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Network Graph */
+        .network-graph {
+            height: 250px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .network-node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .network-node:hover {
+            transform: scale(1.1);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .wide-card {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎛️ NetworkBuster Master Dashboard Control</h1>
+            <p>Real-time connection management and system monitoring</p>
+        </div>
+
+        <!-- System Stats -->
+        <div class="card wide-card">
+            <div class="card-title">
+                <span class="icon">📊</span>
+                System Statistics
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Total Connections</div>
+                    <div class="stat-value" id="totalConnections">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Active</div>
+                    <div class="stat-value" id="activeConnections">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Inactive</div>
+                    <div class="stat-value" id="inactiveConnections">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Uptime</div>
+                    <div class="stat-value" id="systemUptime">0s</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Requests</div>
+                    <div class="stat-value" id="totalRequests">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Active Connections -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">🔌</span>
+                    Active Connections
+                </div>
+                <div class="connection-list" id="connectionList">
+                    <!-- Connections will be populated here -->
+                </div>
+            </div>
+
+            <!-- Add Connection -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">➕</span>
+                    Add Connection
+                </div>
+                <div class="connection-form">
+                    <div class="form-group">
+                        <label for="connName">Connection Name</label>
+                        <input type="text" id="connName" placeholder="e.g., Main API Server">
+                    </div>
+                    <div class="form-group">
+                        <label for="connUrl">URL</label>
+                        <input type="text" id="connUrl" placeholder="http://localhost:3001">
+                    </div>
+                    <div class="form-group">
+                        <label for="connPort">Port</label>
+                        <input type="number" id="connPort" placeholder="3001">
+                    </div>
+                    <button class="btn btn-success" onclick="addConnection()">Add Connection</button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">⚡</span>
+                    Quick Actions
+                </div>
+                <div class="btn-group" style="flex-direction: column;">
+                    <button class="btn btn-primary" onclick="refreshAll()">🔄 Refresh All Connections</button>
+                    <button class="btn btn-info" onclick="testAllConnections()">🧪 Test All Connections</button>
+                    <button class="btn btn-success" onclick="openAllDashboards()">🚀 Open All Dashboards</button>
+                    <button class="btn btn-danger" onclick="clearInactive()">🗑️ Clear Inactive</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Visualization -->
+        <div class="card wide-card">
+            <div class="card-title">
+                <span class="icon">🌐</span>
+                Network Topology
+            </div>
+            <div class="network-graph" id="networkGraph">
+                <!-- Network visualization will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card wide-card">
+            <div class="card-title">
+                <span class="icon">📝</span>
+                Activity Log
+            </div>
+            <div class="activity-log" id="activityLog">
+                <!-- Activity logs will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Connection Management
+        let connections = [
+            { id: 1, name: 'Web Server', url: 'http://localhost:3000', port: 3000, status: 'active' },
+            { id: 2, name: 'API Server', url: 'http://localhost:3001', port: 3001, status: 'inactive' },
+            { id: 3, name: 'Audio Server', url: 'http://localhost:3002', port: 3002, status: 'inactive' }
+        ];
+
+        let activityLogs = [];
+        let connectionIdCounter = 4;
+
+        // Initialize
+        function init() {
+            renderConnections();
+            updateStats();
+            checkAllConnections();
+            renderNetworkGraph();
+            logActivity('System initialized', 'success');
+            setInterval(checkAllConnections, 5000);
+            setInterval(updateUptime, 1000);
+        }
+
+        // Render connections
+        function renderConnections() {
+            const list = document.getElementById('connectionList');
+            if (connections.length === 0) {
+                list.innerHTML = '<p style="color: #718096; text-align: center; padding: 20px;">No connections yet</p>';
+                return;
+            }
+
+            list.innerHTML = connections.map(conn => `
+                <div class="connection-item ${conn.status}">
+                    <div class="connection-info">
+                        <div class="connection-name">${conn.name}</div>
+                        <div class="connection-url">${conn.url}</div>
+                    </div>
+                    <div class="connection-status">
+                        <div class="status-indicator ${conn.status}"></div>
+                        <button class="btn btn-info" style="padding: 6px 12px; font-size: 0.85em;" onclick="testConnection(${conn.id})">Test</button>
+                        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.85em;" onclick="removeConnection(${conn.id})">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = connections.length;
+            const active = connections.filter(c => c.status === 'active').length;
+            const inactive = total - active;
+
+            document.getElementById('totalConnections').textContent = total;
+            document.getElementById('activeConnections').textContent = active;
+            document.getElementById('inactiveConnections').textContent = inactive;
+
+            // Fetch real system stats
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('totalRequests').textContent = data.requestCount || 0;
+                })
+                .catch(() => {});
+        }
+
+        // Check all connections
+        async function checkAllConnections() {
+            for (let conn of connections) {
+                try {
+                    const response = await fetch(conn.url + '/api/health', { 
+                        method: 'GET',
+                        signal: AbortSignal.timeout(2000)
+                    });
+                    conn.status = response.ok ? 'active' : 'inactive';
+                } catch (e) {
+                    conn.status = 'inactive';
+                }
+            }
+            renderConnections();
+            updateStats();
+            renderNetworkGraph();
+        }
+
+        // Test single connection
+        async function testConnection(id) {
+            const conn = connections.find(c => c.id === id);
+            if (!conn) return;
+
+            logActivity(`Testing connection to ${conn.name}...`, 'info');
+            
+            try {
+                const response = await fetch(conn.url + '/api/health', {
+                    method: 'GET',
+                    signal: AbortSignal.timeout(3000)
+                });
+                
+                if (response.ok) {
+                    conn.status = 'active';
+                    logActivity(`✓ ${conn.name} is online`, 'success');
+                } else {
+                    conn.status = 'inactive';
+                    logActivity(`✗ ${conn.name} returned error: ${response.status}`, 'error');
+                }
+            } catch (e) {
+                conn.status = 'inactive';
+                logActivity(`✗ ${conn.name} is unreachable: ${e.message}`, 'error');
+            }
+            
+            renderConnections();
+            updateStats();
+            renderNetworkGraph();
+        }
+
+        // Add new connection
+        function addConnection() {
+            const name = document.getElementById('connName').value.trim();
+            const url = document.getElementById('connUrl').value.trim();
+            const port = document.getElementById('connPort').value.trim();
+
+            if (!name || !url || !port) {
+                logActivity('Please fill all fields', 'error');
+                return;
+            }
+
+            const newConn = {
+                id: connectionIdCounter++,
+                name: name,
+                url: url,
+                port: parseInt(port),
+                status: 'inactive'
+            };
+
+            connections.push(newConn);
+            renderConnections();
+            updateStats();
+            renderNetworkGraph();
+            logActivity(`Added connection: ${name}`, 'success');
+
+            // Clear form
+            document.getElementById('connName').value = '';
+            document.getElementById('connUrl').value = '';
+            document.getElementById('connPort').value = '';
+
+            // Test the new connection
+            testConnection(newConn.id);
+        }
+
+        // Remove connection
+        function removeConnection(id) {
+            const conn = connections.find(c => c.id === id);
+            connections = connections.filter(c => c.id !== id);
+            renderConnections();
+            updateStats();
+            renderNetworkGraph();
+            logActivity(`Removed connection: ${conn.name}`, 'warning');
+        }
+
+        // Clear inactive connections
+        function clearInactive() {
+            const before = connections.length;
+            connections = connections.filter(c => c.status === 'active');
+            const removed = before - connections.length;
+            renderConnections();
+            updateStats();
+            renderNetworkGraph();
+            logActivity(`Cleared ${removed} inactive connection(s)`, 'warning');
+        }
+
+        // Test all connections
+        function testAllConnections() {
+            logActivity('Testing all connections...', 'info');
+            checkAllConnections();
+        }
+
+        // Refresh all
+        function refreshAll() {
+            logActivity('Refreshing dashboard...', 'info');
+            checkAllConnections();
+        }
+
+        // Open all dashboards
+        function openAllDashboards() {
+            connections.filter(c => c.status === 'active').forEach(conn => {
+                window.open(conn.url, '_blank');
+            });
+            logActivity('Opened all active dashboards', 'success');
+        }
+
+        // Log activity
+        function logActivity(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            activityLogs.unshift({ time, message, type });
+            if (activityLogs.length > 50) activityLogs.pop();
+
+            const logEl = document.getElementById('activityLog');
+            logEl.innerHTML = activityLogs.map(log => `
+                <div class="log-entry ${log.type}">
+                    <span class="log-time">${log.time}</span>
+                    <span>${log.message}</span>
+                </div>
+            `).join('');
+        }
+
+        // Update uptime
+        let startTime = Date.now();
+        function updateUptime() {
+            const uptime = Math.floor((Date.now() - startTime) / 1000);
+            const hours = Math.floor(uptime / 3600);
+            const minutes = Math.floor((uptime % 3600) / 60);
+            const seconds = uptime % 60;
+            document.getElementById('systemUptime').textContent = 
+                hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m ${seconds}s`;
+        }
+
+        // Render network graph
+        function renderNetworkGraph() {
+            const graph = document.getElementById('networkGraph');
+            const centerX = graph.offsetWidth / 2;
+            const centerY = graph.offsetHeight / 2;
+            const radius = 80;
+
+            graph.innerHTML = `
+                <div class="network-node" style="left: ${centerX - 30}px; top: ${centerY - 30}px;">
+                    🖥️
+                </div>
+            `;
+
+            connections.forEach((conn, index) => {
+                const angle = (Math.PI * 2 * index) / connections.length;
+                const x = centerX + radius * Math.cos(angle) - 30;
+                const y = centerY + radius * Math.sin(angle) - 30;
+                
+                const color = conn.status === 'active' ? '#48bb78' : '#f56565';
+                const node = document.createElement('div');
+                node.className = 'network-node';
+                node.style.left = x + 'px';
+                node.style.top = y + 'px';
+                node.style.background = color;
+                node.style.width = '50px';
+                node.style.height = '50px';
+                node.style.fontSize = '1.2em';
+                node.textContent = '🔌';
+                node.title = conn.name;
+                
+                graph.appendChild(node);
+            });
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
