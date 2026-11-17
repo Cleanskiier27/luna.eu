@@ -166,6 +166,14 @@ const KNOWLEDGE_BASE = {
       "NetworkBuster supports Docker deployment:\n• docker-compose-flash.yml - Full stack with USB support\n• Dockerfile - Standard web deployment\n• Dockerfile.flash - USB upgrade container\n\nRun: npm run flash:compose"
     ]
   },
+  programOs: {
+    patterns: ['networkbuster os', 'program os', 'available files', 'history', 'preciseliens', 'download package', 'os build', 'launchpad'],
+    responses: [
+      "NetworkBuster OS is a portable browser workspace, not a bootable ISO. It includes 47 build files, the LunaRecycle launchpad, imported program suite, HTML fetch catalog, documentation, and a SHA-256 manifest. The build is available as networkbuster-os.zip.",
+      "For the current program history, open /networkbuster/history.html. For files and build metadata, open the HTML fetch tool or /netbot-context.json. Destructive flash actions remain manual and local-only.",
+      "The Preciseliens upload package contains the latest NetworkBuster OS ZIP, file inventory, NetBot context, and build history. Use the launchpad to register programs, clone the repository, or prepare a reviewed Git/flash workflow."
+    ]
+  },
   help: {
     patterns: ['help', 'commands', 'what can i ask', 'options'],
     responses: [

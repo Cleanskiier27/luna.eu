@@ -428,7 +428,22 @@
   let currentSort   = { key: 'name', asc: true };
 
   // ── Boot ──────────────────────────────────────────────────────
-  window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('DOMContentLoaded', async () => {
+    if (!allFiles.length) {
+      try {
+        const response = await fetch('../netbot-context.json', { cache: 'no-store' });
+        if (response.ok) {
+          const context = await response.json();
+          allFiles = (context.availableFiles || []).map(file => ({
+            name: file.path.split('/').pop(),
+            path: file.path,
+            dir: file.path.includes('/') ? file.path.slice(0, file.path.lastIndexOf('/')) : 'build root',
+            size: file.bytes,
+            modified: context.generatedUtc || ''
+          }));
+        }
+      } catch (_) {}
+    }
     if (!allFiles.length) {
       document.getElementById('stats-bar').style.display = 'none';
       document.getElementById('toolbar').style.display   = 'none';
@@ -436,7 +451,7 @@
       return;
     }
     sortFiles('name', false);
-    toast(`✓ ${allFiles.length} HTML file${allFiles.length !== 1 ? 's' : ''} loaded`, 'success');
+    toast(`✓ ${allFiles.length} available file${allFiles.length !== 1 ? 's' : ''} loaded`, 'success');
   });
 
   // ── Sort ──────────────────────────────────────────────────────
