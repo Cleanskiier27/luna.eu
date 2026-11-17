@@ -25,7 +25,7 @@
     .visual { aspect-ratio: 1; border: 1px solid rgba(129,140,248,.34); border-radius: 32px; background: linear-gradient(145deg, rgba(26,31,61,.92), rgba(13,16,32,.92)); box-shadow: 0 30px 100px rgba(76,29,149,.32); display: grid; place-items: center; overflow: hidden; position: relative; }
     .visual::before { content: ""; width: 58%; aspect-ratio: 1; border-radius: 50%; border: 1px solid #818cf8; box-shadow: 0 0 0 28px rgba(99,102,241,.08), 0 0 0 72px rgba(168,85,247,.05); }
     .orb { position: absolute; font-size: clamp(4rem, 9vw, 7rem); filter: drop-shadow(0 0 30px #6366f1); }
-    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-bottom: 80px; }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding-bottom: 80px; }
     article { min-height: 210px; padding: 24px; border: 1px solid #282e49; border-radius: 20px; background: rgba(16,20,39,.7); }
     article span { font-size: 1.8rem; }
     h2 { margin: 22px 0 10px; }
@@ -42,7 +42,7 @@
         <div class="eyebrow">NetworkBuster / LunaRecycle</div>
         <h1>Device intelligence, reimagined.</h1>
         <p class="lead">A clean launch point for OS imaging, connected-device workflows, GPU-assisted processing, and local HTML organization.</p>
-        <div class="actions"><a class="primary" href="launch.html">Launch with import, register, and clone →</a><a class="pill" href="networkbuster/">Open device app</a><a class="pill" href="networkbuster/history.html">View build history</a></div>
+        <div class="actions"><a class="primary" href="launch.html">Launch all programs →</a><a class="pill" href="networkbuster/">Open device app</a><a class="pill" href="admin.html">Administration</a><a class="pill" href="post/">Google AI</a><a class="pill" href="networkbuster/history.html">Build history</a></div>
       </div>
       <div class="visual" aria-hidden="true"><div class="orb">◉</div></div>
     </section>
@@ -50,6 +50,9 @@
       <article><span>💾</span><h2>OS imaging</h2><p>Choose Linux, Windows, utility, or privacy-focused operating systems from one guided workflow.</p></article>
       <article><span>⚡</span><h2>GPU processing</h2><p>Explore accelerated table analysis with graceful browser fallback and satellite-aware tooling.</p></article>
       <article><span>📁</span><h2>Local organization</h2><p>Scan local HTML files into a searchable catalog through the integrated PowerShell fetcher.</p></article>
+      <article><span>🤖</span><h2>NetBot context</h2><p>Browse imported programs, build history, available files, and machine-readable application context.</p></article>
+      <article><span>☁️</span><h2>Cloud administration</h2><p>Open Azure pipelines, Google AI Platform controls, metrics, IAM troubleshooting, and the POST readiness route.</p></article>
+      <article><span>🧩</span><h2>94 client apps</h2><p>Launch the published Google Cloud SDK app collection and the final inspected LunaRecycle release.</p></article>
     </section>
     <footer><span>Published from main through GitHub Actions.</span><a href="https://github.com/Cleanskiier27/luna.eu">Source repository</a></footer>
   </div>
