@@ -42,6 +42,7 @@ jobs:
           test -f GITREPOVSLOCAL/imported-programs/administration-docs.html
           grep -q 'NASA Systems Engineering Handbook' GITREPOVSLOCAL/imported-programs/administration-docs.html
           grep -q 'networkbuster-sync-ccb82' GITREPOVSLOCAL/imported-programs/administration-docs.html
+          grep -q 'datacentral-489905-502814' GITREPOVSLOCAL/imported-programs/administration-docs.html
           grep -q 'id="pipelines"' GITREPOVSLOCAL/azure-devops-dashboard.html
           grep -q 'aiplatform.googleapis.com' GITREPOVSLOCAL/post/index.html
           grep -q 'PHASE 6' GITREPOVSLOCAL/documentation.html
