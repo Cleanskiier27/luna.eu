@@ -31,3 +31,6 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Locally generated HTML fetcher output
+GITREPOVSLOCAL/html-fetch-tool/collected/

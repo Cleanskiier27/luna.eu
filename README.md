@@ -82,6 +82,16 @@ npx http-server -p 8000
 
 Then open: `http://localhost:8000`
 
+### HTML File Fetcher
+
+The NetworkBuster header includes an HTML File Fetcher. To refresh its local catalog, run from the repository root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\GITREPOVSLOCAL\html-fetch-tool\fetch-html.ps1 -NoOpen
+```
+
+By default it scans only the tool's directory. Pass `-ScanRoot C:\path\to\scan` to choose another local folder. Collected browser data is generated locally and should not contain secrets before committing it.
+
 ## 💻 Usage
 
 ### Basic Workflow
