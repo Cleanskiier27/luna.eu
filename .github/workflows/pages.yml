@@ -17,11 +17,11 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       documentation_ready: ${{ steps.docs.outputs.ready }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Validate static application
         shell: bash
         run: |
@@ -34,7 +34,9 @@ jobs:
           test -f GITREPOVSLOCAL/launch.html
           test -f GITREPOVSLOCAL/admin.html
           test -f GITREPOVSLOCAL/azure-devops-dashboard.html
+          test -f GITREPOVSLOCAL/post/index.html
           grep -q 'id="pipelines"' GITREPOVSLOCAL/azure-devops-dashboard.html
+          grep -q 'aiplatform.googleapis.com' GITREPOVSLOCAL/post/index.html
           test -f GITREPOVSLOCAL/imported-programs/index.html
           test -f GITREPOVSLOCAL/imported-programs/flash-commands.html
           ! grep -R -nE 'gho_[A-Za-z0-9]+|access_token=[A-Za-z0-9._-]+' GITREPOVSLOCAL README.md
@@ -58,14 +60,14 @@ jobs:
           echo 'ready=true' >> "$GITHUB_OUTPUT"
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: GITREPOVSLOCAL
 
   deploy:
     if: github.event_name != 'pull_request'
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
