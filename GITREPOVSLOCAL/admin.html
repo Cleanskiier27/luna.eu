@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NetworkBuster Administration</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: #eef2ff; background: #080a13; }
+    header { position: sticky; z-index: 2; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 20px; border-bottom: 1px solid #2b3352; background: rgba(8,10,19,.94); backdrop-filter: blur(14px); }
+    .brand { font-weight: 800; }
+    nav { display: flex; gap: 9px; flex-wrap: wrap; }
+    a, button { color: #fff; font: inherit; }
+    .button { border: 1px solid #354064; border-radius: 999px; padding: 8px 13px; background: #151b32; text-decoration: none; cursor: pointer; }
+    .primary { border-color: #818cf8; background: linear-gradient(135deg,#4f46e5,#9333ea); }
+    .notice { margin: 16px 20px; padding: 12px 14px; border: 1px solid #3f486b; border-radius: 12px; color: #b8c1dc; background: #10162a; }
+    code { overflow-wrap: anywhere; color: #c4b5fd; }
+    iframe { display: block; width: calc(100% - 40px); height: calc(100vh - 154px); min-height: 620px; margin: 0 20px 20px; border: 1px solid #303857; border-radius: 16px; background: #fff; }
+    @media (max-width: 650px) { header { align-items: flex-start; flex-direction: column; } iframe { width: calc(100% - 20px); margin: 0 10px 10px; } .notice { margin: 10px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">NetworkBuster Administration</div>
+    <nav>
+      <a class="button" href="index.html">Home</a>
+      <a class="button primary" href="azure-devops-dashboard.html#pipelines" target="frame">Pipelines</a>
+      <a class="button" href="azure-devops-dashboard.html#resources" target="frame">Resources</a>
+      <a class="button" href="azure-devops-dashboard.html#monitoring" target="frame">Monitoring</a>
+    </nav>
+  </header>
+  <div class="notice">
+    Local source: <code>file:///C:/.comapp/app/src/test/java/networkbuster.net-luna.eu/.azure/AZURE_DEVOPS_DASHBOARD.html#pipelines</code>
+    — browsers may block local <code>file:</code> links from a hosted page, so the embedded mirror opens the same dashboard safely.
+  </div>
+  <iframe name="frame" src="azure-devops-dashboard.html#pipelines" title="Azure DevOps pipeline dashboard"></iframe>
+</body>
+</html>
