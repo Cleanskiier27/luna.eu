@@ -40,6 +40,9 @@ jobs:
           test -f GITREPOVSLOCAL/imported-programs/index.html
           test -f GITREPOVSLOCAL/imported-programs/flash-commands.html
           test -f GITREPOVSLOCAL/imported-programs/administration-docs.html
+          test -f GITREPOVSLOCAL/ai-for-all.html
+          test -f GITREPOVSLOCAL/seo-toolkit.html
+          grep -q 'Generated HTML' GITREPOVSLOCAL/seo-toolkit.html
           grep -q 'NASA Systems Engineering Handbook' GITREPOVSLOCAL/imported-programs/administration-docs.html
           grep -q 'networkbuster-sync-ccb82' GITREPOVSLOCAL/imported-programs/administration-docs.html
           grep -q 'datacentral-489905-502814' GITREPOVSLOCAL/imported-programs/administration-docs.html
