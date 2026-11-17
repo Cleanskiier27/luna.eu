@@ -298,6 +298,11 @@
         </div>
       </div>
       <div style="display:flex; gap:10px; align-items:flex-end;">
+        <button class="btn btn-ghost" onclick="document.getElementById('program-import').click()" style="padding:10px 16px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Import Programs
+        </button>
+        <input type="file" id="program-import" multiple hidden accept=".html,.htm,.js,.mjs,.cjs,.css,.ps1,.py,.json,.txt" onchange="importPrograms(this.files); this.value=''">
         <button class="btn btn-ghost" onclick="exportList()" style="padding:10px 16px;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export List
@@ -385,7 +390,15 @@
   <div class="action-sep"></div>
   <div class="target-wrap">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    <label for="target-recommendation" style="font-size:11px;color:var(--text-muted);">Recommendation</label>
+    <select id="target-recommendation" class="target-input" onchange="applyTargetRecommendation()" aria-label="Recommended target folder">
+      <option value="C:\html-fetch-tool\collected">Recommended: collected folder</option>
+      <option value="C:\Users\daypi\Downloads\html-collection">Downloads: HTML collection</option>
+      <option value="C:\Users\daypi\Documents\html-archive">Documents: HTML archive</option>
+      <option value="custom">Custom path…</option>
+    </select>
     <input type="text" class="target-input" id="target-folder" value="C:\html-fetch-tool\collected" placeholder="Target folder path…" />
+    <small id="target-recommendation-text" style="font-size:10px;color:var(--text-muted);">Best for a dedicated, easy-to-clean collection.</small>
   </div>
   <button class="btn btn-teal" onclick="copyFilesToFolder()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -549,6 +562,41 @@
     const n = selectedPaths.size;
     document.getElementById('action-count').textContent = `${n} file${n !== 1 ? 's' : ''} selected`;
     document.getElementById('action-panel').classList.toggle('hidden', n === 0);
+  }
+
+  function applyTargetRecommendation() {
+    const choice = document.getElementById('target-recommendation');
+    const field = document.getElementById('target-folder');
+    const note = document.getElementById('target-recommendation-text');
+    const recommendations = {
+      'C:\\html-fetch-tool\\collected': 'Best for a dedicated, easy-to-clean collection.',
+      'C:\\Users\\daypi\\Downloads\\html-collection': 'Convenient for temporary browser downloads.',
+      'C:\\Users\\daypi\\Documents\\html-archive': 'Recommended for long-term organized storage.'
+    };
+    if (choice.value === 'custom') {
+      field.focus();
+      note.textContent = 'Enter any local folder path. Avoid system folders.';
+      return;
+    }
+    field.value = choice.value;
+    note.textContent = recommendations[choice.value];
+  }
+
+  function importPrograms(files) {
+    const imported = Array.from(files).map(file => ({
+      name: file.name,
+      path: `[Imported in browser] ${file.name}`,
+      dir: 'Local browser import',
+      size: file.size,
+      modified: new Date(file.lastModified).toISOString().slice(0, 19).replace('T', ' ')
+    }));
+    if (!imported.length) return;
+    allFiles.push(...imported);
+    document.getElementById('stats-bar').style.display = '';
+    document.getElementById('toolbar').style.display = '';
+    document.getElementById('noscan-state').style.display = 'none';
+    sortFiles('name', false);
+    toast(`✓ Imported ${imported.length} program${imported.length === 1 ? '' : 's'}`, 'success');
   }
 
   // ── Copy to folder ────────────────────────────────────────────

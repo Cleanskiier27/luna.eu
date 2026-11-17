@@ -18,6 +18,8 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    outputs:
+      documentation_ready: ${{ steps.docs.outputs.ready }}
     steps:
       - uses: actions/checkout@v4
       - name: Validate static application
@@ -39,6 +41,15 @@ jobs:
               Parser().feed(path.read_text(encoding='utf-8'))
               print(f'validated {path}')
           PY
+      - name: Documentation phase
+        id: docs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s GITREPOVSLOCAL/documentation.html
+          grep -q 'PHASE 6' GITREPOVSLOCAL/documentation.html
+          grep -q 'Documentation' GITREPOVSLOCAL/index.html
+          echo 'ready=true' >> "$GITHUB_OUTPUT"
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
