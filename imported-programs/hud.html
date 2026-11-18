@@ -1,0 +1,371 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetworkBuster System Command Overlay</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #05080f;
+            --panel: rgba(13, 22, 43, 0.8);
+            --accent: #00f0ff;
+            --accent-2: #7000ff;
+            --text: #e8f0ff;
+            --muted: #64748b;
+            --danger: #ff003c;
+            --success: #00ff66;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 1000;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .header-system {
+            height: 80px;
+            background: rgba(10, 15, 30, 0.95);
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+            z-index: 100;
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 15px; }
+        .logo-icon { font-size: 32px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } }
+        
+        .system-title h1 { font-size: 20px; letter-spacing: 2px; color: var(--accent); }
+        .system-title p { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+
+        .main-viewport {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 10px;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .center-feed {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-auto-rows: min-content;
+            gap: 10px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 4px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .panel-header {
+            font-size: 11px;
+            color: var(--accent);
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Camera Feed Style */
+        .cam-feed {
+            aspect-ratio: 16/9;
+            background: #000;
+            border: 1px solid #333;
+            position: relative;
+            overflow: hidden;
+        }
+        .cam-canvas { width: 100%; height: 100%; display: block; opacity: 0.8; }
+        .cam-label {
+            position: absolute; top: 5px; left: 5px;
+            background: rgba(0,0,0,0.6); color: var(--accent);
+            padding: 2px 6px; font-size: 10px; z-index: 10;
+        }
+        .rec-indicator {
+            position: absolute; top: 5px; right: 5px;
+            color: var(--danger); font-size: 10px; font-weight: bold;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+        /* Telemetry Items */
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+        .tel-label { color: var(--muted); }
+        .tel-value { color: var(--accent); }
+
+        .spectrum-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 40px;
+            margin-top: 10px;
+        }
+        .spec-bar { flex: 1; background: var(--accent); min-height: 2px; transition: height 0.1s ease; opacity: 0.6; }
+
+        /* Log Box */
+        .log-display {
+            background: #05080f;
+            font-size: 10px;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #1a2642;
+            color: #8aa2c0;
+        }
+
+        .nav-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 11px;
+            padding: 5px 10px;
+            border: 1px solid transparent;
+        }
+        .nav-link:hover { color: var(--accent); border-color: var(--accent); }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+    </style>
+</head>
+<body>
+    <header class="header-system">
+        <div class="logo-section">
+            <div class="logo-icon">🌐</div>
+            <div class="system-title">
+                <h1>SYSTEM COMMAND OVERLAY</h1>
+                <p>LUNAR_BASE // OPS_CONTROL_NODE_01</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 30px; align-items: center;">
+            <div id="systemClock" style="font-size: 20px; font-weight: bold; color: var(--accent);">00:00:00</div>
+            <nav style="display: flex; gap: 10px;">
+                <a href="" class="nav-link">HOME</a>
+                <a href="dashboard/" class="nav-link">DASHBOARD</a>
+                <a href="audio-lab" class="nav-link">AUDIO_LAB</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-viewport">
+        <!-- Left Panel: Status & Logs -->
+        <aside class="side-panel">
+            <div class="panel">
+                <div class="panel-header"><span>NETWORK_STATUS</span><span>ONLINE</span></div>
+                <div id="statusTelemetry"></div>
+            </div>
+            <div class="panel" style="flex: 1;">
+                <div class="panel-header"><span>SYSTEM_LOGS</span></div>
+                <div id="logsBox" class="log-display">Loading logs...</div>
+            </div>
+        </aside>
+
+        <!-- Center: Camera Feeds -->
+        <section class="center-feed" id="cameraGrid">
+            <!-- Dynamically injected feeds -->
+        </section>
+
+        <!-- Right Panel: Audio & Sensors -->
+        <aside class="side-panel">
+            <div class="panel">
+                <div class="panel-header"><span>AUDIO_TELEMETRY</span><span id="streamId">IDLE</span></div>
+                <div class="telemetry-row"><span class="tel-label">Dominant Freq</span><span class="tel-value" id="freqVal">0 Hz</span></div>
+                <div class="spectrum-container" id="spectrumBars">
+                    <div class="spec-bar"></div>
+                    <div class="spec-bar"></div>
+                    <div class="spec-bar"></div>
+                    <div class="spec-bar"></div>
+                    <div class="spec-bar"></div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header"><span>SENSOR_ARRAY</span></div>
+                <div class="telemetry-row"><span class="tel-label">O2_LEVEL</span><span class="tel-value">21.4%</span></div>
+                <div class="telemetry-row"><span class="tel-label">PRESSURE</span><span class="tel-value">101.3 kPa</span></div>
+                <div class="telemetry-row"><span class="tel-label">RAD_LEVEL</span><span class="tel-value">0.12 mSv/h</span></div>
+                <div class="telemetry-row"><span class="tel-label">CPU_TEMP</span><span class="tel-value">42°C</span></div>
+            </div>
+            <div class="panel" style="flex: 1;">
+                <div class="panel-header"><span>DEPLOYMENT_STATUS</span></div>
+                <div class="telemetry-row"><span class="tel-label">AZURE_READY</span><span class="tel-value" style="color:var(--success)">TRUE</span></div>
+                <div class="telemetry-row"><span class="tel-label">CONTAINER_ID</span><span class="tel-value">nb-core-v1</span></div>
+                <div class="telemetry-row"><span class="tel-label">UPTIME</span><span class="tel-value" id="uptimeVal">0s</span></div>
+            </div>
+        </aside>
+    </main>
+
+    <script src="audio-bridge.js"></script>
+    <script>
+        // --- Clock & Uptime ---
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('systemClock').textContent = now.toLocaleTimeString('en-GB');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        let uptime = 0;
+        setInterval(() => {
+            uptime++;
+            document.getElementById('uptimeVal').textContent = uptime + 's';
+        }, 1000);
+
+        // --- Camera Simulation ---
+        const cameraGrid = document.getElementById('cameraGrid');
+        const camConfigs = [
+            { id: 'BASE_01', type: 'VIS' }, { id: 'BASE_02', type: 'VIS' },
+            { id: 'EXT_NORTH', type: 'IR' }, { id: 'EXT_SOUTH', type: 'IR' },
+            { id: 'DOCK_A', type: 'AUX' }, { id: 'DOCK_B', type: 'AUX' }
+        ];
+
+        camConfigs.forEach(cam => {
+            const div = document.createElement('div');
+            div.className = 'cam-feed';
+            div.innerHTML = `
+                <div class="cam-label">CAM::${cam.id} [${cam.type}]</div>
+                <div class="rec-indicator">● LIVE</div>
+                <canvas class="cam-canvas" id="can_${cam.id}"></canvas>
+            `;
+            cameraGrid.appendChild(div);
+            initCam(cam.id);
+        });
+
+        function initCam(id) {
+            const canvas = document.getElementById(`can_${id}`);
+            const ctx = canvas.getContext('2d');
+            canvas.width = 400; canvas.height = 225;
+            
+            function draw() {
+                ctx.fillStyle = '#05080f';
+                ctx.fillRect(0,0,400,225);
+                
+                // Static/Noise
+                for(let i=0; i<100; i++) {
+                    ctx.fillStyle = `rgba(0, 240, 255, ${Math.random()*0.1})`;
+                    ctx.fillRect(Math.random()*400, Math.random()*225, 1, 1);
+                }
+
+                // Grid lines
+                ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
+                ctx.beginPath();
+                for(let x=0; x<400; x+=50) { ctx.moveTo(x,0); ctx.lineTo(x,225); }
+                for(let y=0; y<225; y+=50) { ctx.moveTo(0,y); ctx.lineTo(400,y); }
+                ctx.stroke();
+
+                // Crosshair
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.beginPath();
+                ctx.moveTo(180, 112); ctx.lineTo(220, 112);
+                ctx.moveTo(200, 92); ctx.lineTo(200, 132);
+                ctx.stroke();
+
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        // --- Network Checks ---
+        const endpoints = [
+            { label: 'API CORE', url: '/api/health' },
+            { label: 'SPECS SV', url: '/api/status' },
+            { label: 'AUDIO SV', url: 'http://localhost:3002/health' }
+        ];
+
+        async function runChecks() {
+            const container = document.getElementById('statusTelemetry');
+            let html = '';
+            for(const ep of endpoints) {
+                const start = performance.now();
+                let status = 'OK';
+                let color = 'var(--success)';
+                try {
+                    const r = await fetch(ep.url);
+                    if(!r.ok) throw new Error();
+                } catch(e) { status = 'ERR'; color = 'var(--danger)'; }
+                const lat = Math.round(performance.now() - start);
+                html += `<div class="telemetry-row">
+                    <span class="tel-label">${ep.label}</span>
+                    <span class="tel-value" style="color:${color}">${status} [${lat}ms]</span>
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+        setInterval(runChecks, 10000);
+        runChecks();
+
+        // --- Audio Bridge Integration ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.AudioBridge) {
+                const session = await window.AudioBridge.initSession();
+                if(session) document.getElementById('streamId').textContent = 'SID:' + session.streamId;
+                
+                setInterval(async () => {
+                    const spectrum = await window.AudioBridge.getSpectrum();
+                    if (spectrum && spectrum.success) {
+                        const bars = document.getElementById('spectrumBars').children;
+                        const s = spectrum.spectrum;
+                        const vals = [s.bass, s.lowMid, s.mid, s.highMid, s.treble];
+                        for(let i=0; i<bars.length; i++) {
+                            bars[i].style.height = vals[i] + '%';
+                            bars[i].style.opacity = 0.4 + (vals[i]/150);
+                        }
+                    }
+                }, 100);
+            }
+        });
+
+        // --- Logs ---
+        async function loadLogs() {
+            try {
+                const res = await fetch('/api/logs');
+                const data = await res.json();
+                document.getElementById('logsBox').textContent = data.logs.slice(-50).reverse().join('\n');
+            } catch(e) { document.getElementById('logsBox').textContent = 'LOG_FEED_OFFLINE'; }
+        }
+        setInterval(loadLogs, 5000);
+        loadLogs();
+    </script>
+</body>
+</html>
