@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTML Fetch Tool — File Organizer</title>
+  <meta name="description" content="Scan, browse, and copy HTML files from your system into a target folder." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-base:      #0d0f14;
+      --bg-surface:   #13161e;
+      --bg-elevated:  #1a1e2a;
+      --bg-hover:     #1f2435;
+      --border:       #252b3b;
+      --border-glow:  #3b82f6;
+      --accent:       #3b82f6;
+      --accent-dim:   #1e3a5f;
+      --accent-glow:  rgba(59,130,246,.25);
+      --teal:         #14b8a6;
+      --purple:       #a78bfa;
+      --amber:        #f59e0b;
+      --red:          #ef4444;
+      --green:        #22c55e;
+      --text-primary: #e8ecf4;
+      --text-muted:   #6b7591;
+      --text-dim:     #3d4463;
+      --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px; --radius-xl: 24px;
+      --shadow-glow: 0 0 24px rgba(59,130,246,.15);
+      --shadow-card: 0 4px 32px rgba(0,0,0,.45);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base); color: var(--text-primary);
+      min-height: 100vh; overflow-x: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(59,130,246,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,.03) 1px, transparent 1px);
+      background-size: 40px 40px; pointer-events: none;
+    }
+    .app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 32px;
+      background: rgba(13,15,20,.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-icon {
+      width: 40px; height: 40px; border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; box-shadow: var(--shadow-glow);
+    }
+    .header-title { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+    .header-subtitle { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-top: 1px; }
+    .header-badge {
+      background: var(--accent-dim); color: var(--accent);
+      border: 1px solid rgba(59,130,246,.3);
+      padding: 4px 12px; border-radius: 999px;
+      font-size: 11px; font-weight: 600; letter-spacing: .5px;
+    }
+
+    main { flex: 1; padding: 32px; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+    /* Controls */
+    .controls {
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 16px; align-items: end; margin-bottom: 28px;
+    }
+    .control-group label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--text-muted); letter-spacing: .8px; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .input-wrap { position: relative; }
+    .input-wrap svg {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--text-muted); pointer-events: none;
+    }
+    input[type="search"] {
+      width: 100%; background: var(--bg-elevated); border: 1px solid var(--border);
+      color: var(--text-primary); padding: 10px 12px 10px 38px;
+      border-radius: var(--radius-md); font-family: inherit; font-size: 13px;
+      transition: border-color .2s, box-shadow .2s; outline: none;
+    }
+    input[type="search"]:focus { border-color: var(--border-glow); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border-radius: var(--radius-md);
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; transition: all .2s; white-space: nowrap;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #2563eb); color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,.35); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,.5); }
+    .btn-ghost { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg-hover); border-color: var(--border-glow); }
+    .btn-teal { background: linear-gradient(135deg, var(--teal), #0d9488); color: #fff; box-shadow: 0 4px 12px rgba(20,184,166,.3); }
+    .btn-teal:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(20,184,166,.45); }
+    .btn-danger { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.25); }
+    .btn-danger:hover { background: rgba(239,68,68,.2); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+    /* Stats */
+    .stats-bar {
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+      padding: 14px 20px; background: var(--bg-surface);
+      border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 20px;
+    }
+    .stat-item { display: flex; align-items: center; gap: 8px; }
+    .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .stat-label { font-size: 12px; color: var(--text-muted); }
+    .stat-value { font-size: 14px; font-weight: 600; }
+    .stat-sep { width: 1px; height: 20px; background: var(--border); }
+
+    /* Toolbar */
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .toolbar-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+    .toolbar-right { display: flex; align-items: center; gap: 10px; }
+    .custom-checkbox {
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 2px solid var(--border); background: var(--bg-elevated);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all .2s; flex-shrink: 0;
+    }
+    .custom-checkbox.checked { background: var(--accent); border-color: var(--accent); }
+    .custom-checkbox.indeterminate { background: var(--accent-dim); border-color: var(--accent); }
+    .custom-checkbox svg { opacity: 0; transition: opacity .15s; }
+    .custom-checkbox.checked svg { opacity: 1; }
+    .sort-btn {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      color: var(--text-muted); padding: 6px 12px; border-radius: var(--radius-sm);
+      font-size: 11px; font-weight: 600; cursor: pointer; transition: all .2s;
+      letter-spacing: .4px; text-transform: uppercase;
+    }
+    .sort-btn.active { color: var(--accent); border-color: rgba(59,130,246,.3); background: var(--accent-dim); }
+    .sort-btn:hover { color: var(--text-primary); border-color: var(--border-glow); }
+
+    /* File grid */
+    .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+    .file-card {
+      position: relative; background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 16px; cursor: pointer; transition: all .2s; overflow: hidden;
+    }
+    .file-card::before {
+      content: ''; position: absolute; inset: 0; border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, transparent, rgba(59,130,246,.03));
+      opacity: 0; transition: opacity .2s;
+    }
+    .file-card:hover { border-color: rgba(59,130,246,.35); transform: translateY(-2px); box-shadow: var(--shadow-card), var(--shadow-glow); }
+    .file-card:hover::before { opacity: 1; }
+    .file-card.selected { border-color: var(--accent); background: rgba(59,130,246,.06); box-shadow: 0 0 0 1px var(--accent), var(--shadow-glow); }
+    .file-card.selected::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+    }
+    .card-header { display: flex; align-items: flex-start; gap: 12px; }
+    .file-icon {
+      width: 36px; height: 36px; flex-shrink: 0; border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #1e3a5f, #1a1e2a);
+      border: 1px solid rgba(59,130,246,.2);
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+    }
+    .card-meta { flex: 1; min-width: 0; }
+    .file-name {
+      font-size: 13px; font-weight: 600; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;
+    }
+    .file-dir { font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'JetBrains Mono', monospace; }
+    .card-checkbox { margin-left: auto; flex-shrink: 0; }
+    .card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .file-size, .file-date { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+    .open-btn {
+      font-size: 10px; font-weight: 600; color: var(--accent);
+      background: none; border: none; cursor: pointer; padding: 2px 6px;
+      border-radius: var(--radius-sm); transition: background .15s; font-family: inherit;
+    }
+    .open-btn:hover { background: var(--accent-dim); }
+
+    /* Empty / no-data states */
+    .state-container {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 16px; padding: 80px 20px; text-align: center;
+    }
+    .state-icon { font-size: 56px; opacity: .3; }
+    .state-title { font-size: 20px; font-weight: 600; }
+    .state-desc { font-size: 13px; color: var(--text-muted); max-width: 420px; line-height: 1.6; }
+    code { font-family: 'JetBrains Mono', monospace; background: var(--bg-elevated); padding: 2px 6px; border-radius: 4px; color: var(--accent); }
+
+    /* Action panel */
+    .action-panel {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--bg-elevated); border: 1px solid rgba(59,130,246,.3);
+      border-radius: var(--radius-xl); padding: 16px 24px;
+      display: flex; align-items: center; gap: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6), var(--shadow-glow);
+      backdrop-filter: blur(16px); z-index: 200;
+      transition: all .3s cubic-bezier(.34,1.56,.64,1); white-space: nowrap;
+    }
+    .action-panel.hidden { transform: translateX(-50%) translateY(120%); opacity: 0; pointer-events: none; }
+    .action-count { font-size: 13px; font-weight: 700; color: var(--accent); }
+    .action-sep { width: 1px; height: 24px; background: var(--border); }
+    .target-wrap { display: flex; align-items: center; gap: 8px; }
+    .target-input {
+      background: var(--bg-base); border: 1px solid var(--border); color: var(--text-primary);
+      padding: 8px 12px; border-radius: var(--radius-md);
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; width: 280px; outline: none;
+      transition: border-color .2s;
+    }
+    .target-input:focus { border-color: var(--border-glow); }
+
+    /* Toast */
+    #toast-container { position: fixed; top: 80px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 999; pointer-events: none; }
+    .toast {
+      display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+      background: var(--bg-elevated); border-radius: var(--radius-md);
+      border-left: 3px solid var(--green); box-shadow: var(--shadow-card);
+      font-size: 13px; font-weight: 500;
+      animation: slideIn .3s ease, fadeOut .3s ease 2.7s forwards;
+      pointer-events: auto; min-width: 220px;
+    }
+    .toast.error { border-color: var(--red); }
+    .toast.warn  { border-color: var(--amber); }
+    @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateX(20px); } }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(13,15,20,.85); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-card {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: 40px 48px; text-align: center;
+      box-shadow: var(--shadow-card), var(--shadow-glow); min-width: 360px; max-width: 640px; width: 90%;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .modal-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+    .cmd-box {
+      background: var(--bg-base); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--text-primary); text-align: left; word-break: break-all;
+      margin-bottom: 20px; max-height: 180px; overflow-y: auto; line-height: 1.6;
+      user-select: all;
+    }
+    .modal-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .modal-tip { margin-top: 16px; font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+    @media (max-width: 768px) {
+      .controls { grid-template-columns: 1fr; }
+      header { padding: 16px 20px; } main { padding: 20px; }
+      .file-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="header-brand">
+      <div class="header-icon">📂</div>
+      <div>
+        <div class="header-title">HTML Fetch Tool</div>
+        <div class="header-subtitle">Source • Browse • Collect</div>
+      </div>
+    </div>
+    <div class="header-badge">FILE ORGANIZER</div>
+  </header>
+
+  <main>
+    <!-- Controls -->
+    <div class="controls">
+      <div class="control-group">
+        <label>Filter by Name or Path</label>
+        <div class="input-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="search-box" placeholder="Search file names or paths…" oninput="filterFiles()" />
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:flex-end;">
+        <button class="btn btn-ghost" onclick="document.getElementById('program-import').click()" style="padding:10px 16px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Import Programs
+        </button>
+        <input type="file" id="program-import" multiple hidden accept=".html,.htm,.js,.mjs,.cjs,.css,.ps1,.py,.json,.txt" onchange="importPrograms(this.files); this.value=''">
+        <button class="btn btn-ghost" onclick="exportList()" style="padding:10px 16px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export List
+        </button>
+        <button class="btn btn-ghost" onclick="clearSelection()" style="padding:10px 16px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-item">
+        <div class="stat-dot" style="background:var(--accent)"></div>
+        <span class="stat-label">Total Files</span>
+        <span class="stat-value" id="stat-total">0</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat-item">
+        <div class="stat-dot" style="background:var(--green)"></div>
+        <span class="stat-label">Showing</span>
+        <span class="stat-value" id="stat-showing">0</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat-item">
+        <div class="stat-dot" style="background:var(--purple)"></div>
+        <span class="stat-label">Selected</span>
+        <span class="stat-value" id="stat-selected">0</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat-item">
+        <div class="stat-dot" style="background:var(--teal)"></div>
+        <span class="stat-label">Selected Size</span>
+        <span class="stat-value" id="stat-size">0 B</span>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar" id="toolbar">
+      <div class="toolbar-left">
+        <div style="cursor:pointer; display:flex; align-items:center; gap:8px;" onclick="toggleSelectAll()">
+          <div class="custom-checkbox" id="select-all-checkbox">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span style="font-size:12px; color:var(--text-muted); font-weight:500;">Select All</span>
+        </div>
+        <div class="stat-sep" style="height:16px;"></div>
+        <span style="font-size:11px; color:var(--text-muted); letter-spacing:.6px; text-transform:uppercase; font-weight:600;">Sort:</span>
+        <button class="sort-btn active" id="sort-name" onclick="sortFiles('name')">Name</button>
+        <button class="sort-btn" id="sort-size" onclick="sortFiles('size')">Size</button>
+        <button class="sort-btn" id="sort-date" onclick="sortFiles('modified')">Date</button>
+      </div>
+      <div class="toolbar-right">
+        <span id="result-count" style="font-size:12px; color:var(--text-muted);"></span>
+      </div>
+    </div>
+
+    <!-- File Grid -->
+    <div class="file-grid" id="file-grid"></div>
+
+    <!-- Empty / no-data state -->
+    <div class="state-container" id="empty-state" style="display:none;">
+      <div class="state-icon">🔍</div>
+      <div class="state-title">No files found</div>
+      <div class="state-desc">No HTML files matched your search.</div>
+    </div>
+
+    <!-- No scan state -->
+    <div class="state-container" id="noscan-state" style="display:none;">
+      <div class="state-icon">🗂️</div>
+      <div class="state-title">No scan data loaded</div>
+      <div class="state-desc">
+        Run <code>fetch-html.ps1</code> in PowerShell first.<br/>
+        It will scan your drive and re-open this page with all results ready.
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Action Panel -->
+<div class="action-panel hidden" id="action-panel">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+  <span class="action-count" id="action-count">0 files selected</span>
+  <div class="action-sep"></div>
+  <div class="target-wrap">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    <label for="target-recommendation" style="font-size:11px;color:var(--text-muted);">Recommendation</label>
+    <select id="target-recommendation" class="target-input" onchange="applyTargetRecommendation()" aria-label="Recommended target folder">
+      <option value="C:\html-fetch-tool\collected">Recommended: collected folder</option>
+      <option value="C:\Users\daypi\Downloads\html-collection">Downloads: HTML collection</option>
+      <option value="C:\Users\daypi\Documents\html-archive">Documents: HTML archive</option>
+      <option value="custom">Custom path…</option>
+    </select>
+    <input type="text" class="target-input" id="target-folder" value="C:\html-fetch-tool\collected" placeholder="Target folder path…" />
+    <small id="target-recommendation-text" style="font-size:10px;color:var(--text-muted);">Best for a dedicated, easy-to-clean collection.</small>
+  </div>
+  <button class="btn btn-teal" onclick="copyFilesToFolder()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    Add to Folder
+  </button>
+  <button class="btn btn-danger" onclick="clearSelection()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay hidden" id="modal">
+  <div class="modal-card" id="modal-card"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<script>
+  // ── Inline scan data (injected by fetch-html.ps1) ────────────
+  let allFiles = [];
+  // __SCAN_DATA_INJECT_START__
+  // __SCAN_DATA_INJECT_END__
+
+  let filteredFiles = [];
+  let selectedPaths = new Set();
+  let currentSort   = { key: 'name', asc: true };
+
+  // ── Boot ──────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', async () => {
+    if (!allFiles.length) {
+      try {
+        const response = await fetch('../netbot-context.json', { cache: 'no-store' });
+        if (response.ok) {
+          const context = await response.json();
+          allFiles = (context.availableFiles || []).map(file => ({
+            name: file.path.split('/').pop(),
+            path: file.path,
+            dir: file.path.includes('/') ? file.path.slice(0, file.path.lastIndexOf('/')) : 'build root',
+            size: file.bytes,
+            modified: context.generatedUtc || ''
+          }));
+        }
+      } catch (_) {}
+    }
+    if (!allFiles.length) {
+      document.getElementById('stats-bar').style.display = 'none';
+      document.getElementById('toolbar').style.display   = 'none';
+      document.getElementById('noscan-state').style.display = '';
+      return;
+    }
+    sortFiles('name', false);
+    toast(`✓ ${allFiles.length} available file${allFiles.length !== 1 ? 's' : ''} loaded`, 'success');
+  });
+
+  // ── Sort ──────────────────────────────────────────────────────
+  function sortFiles(key, toggle = true) {
+    if (toggle) {
+      currentSort.asc = currentSort.key === key ? !currentSort.asc : true;
+      currentSort.key = key;
+    }
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('sort-' + key);
+    if (btn) btn.classList.add('active');
+
+    allFiles.sort((a, b) => {
+      let va = a[key] ?? '', vb = b[key] ?? '';
+      if (key === 'size') { va = +va || 0; vb = +vb || 0; }
+      return currentSort.asc
+        ? (va < vb ? -1 : va > vb ? 1 : 0)
+        : (va > vb ? -1 : va < vb ? 1 : 0);
+    });
+    filterFiles();
+  }
+
+  // ── Filter ────────────────────────────────────────────────────
+  function filterFiles() {
+    const q = document.getElementById('search-box').value.toLowerCase();
+    filteredFiles = q
+      ? allFiles.filter(f => (f.name||'').toLowerCase().includes(q) || (f.path||'').toLowerCase().includes(q))
+      : [...allFiles];
+
+    document.getElementById('empty-state').style.display  = filteredFiles.length ? 'none' : '';
+    document.getElementById('noscan-state').style.display = 'none';
+    renderGrid();
+  }
+
+  // ── Render ────────────────────────────────────────────────────
+  function renderGrid() {
+    const grid = document.getElementById('file-grid');
+    grid.innerHTML = '';
+
+    filteredFiles.forEach(f => {
+      const sel  = selectedPaths.has(f.path);
+      const card = document.createElement('div');
+      card.className = 'file-card' + (sel ? ' selected' : '');
+      card.dataset.path = f.path;
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="file-icon">🌐</div>
+          <div class="card-meta">
+            <div class="file-name" title="${esc(f.name)}">${esc(f.name)}</div>
+            <div class="file-dir"  title="${esc(f.dir)}">${esc(f.dir)}</div>
+          </div>
+          <div class="card-checkbox">
+            <div class="custom-checkbox${sel ? ' checked' : ''}">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="file-size">📄 ${formatSize(f.size)}</div>
+          <div class="file-date">🕐 ${f.modified || '—'}</div>
+          <button class="open-btn" data-open="${esc(f.path)}">Open ↗</button>
+        </div>`;
+
+      card.querySelector('.open-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        const p = e.currentTarget.dataset.open;
+        window.open('file:///' + p.replace(/\\/g, '/'), '_blank');
+      });
+      card.addEventListener('click', () => toggleSelect(f.path));
+      grid.appendChild(card);
+    });
+
+    updateStats();
+    updateSelectAllCheckbox();
+  }
+
+  // ── Selection ─────────────────────────────────────────────────
+  function toggleSelect(path) {
+    selectedPaths.has(path) ? selectedPaths.delete(path) : selectedPaths.add(path);
+    const card = document.querySelector(`.file-card[data-path="${CSS.escape(path)}"]`);
+    if (card) {
+      card.classList.toggle('selected', selectedPaths.has(path));
+      card.querySelector('.custom-checkbox')?.classList.toggle('checked', selectedPaths.has(path));
+    }
+    updateStats();
+    updateSelectAllCheckbox();
+    updateActionPanel();
+  }
+
+  function toggleSelectAll() {
+    const allSelected = filteredFiles.every(f => selectedPaths.has(f.path));
+    if (allSelected) filteredFiles.forEach(f => selectedPaths.delete(f.path));
+    else             filteredFiles.forEach(f => selectedPaths.add(f.path));
+    renderGrid();
+    updateActionPanel();
+  }
+
+  function clearSelection() {
+    selectedPaths.clear();
+    renderGrid();
+    updateActionPanel();
+  }
+
+  // ── UI sync ───────────────────────────────────────────────────
+  function updateStats() {
+    document.getElementById('stat-total').textContent    = allFiles.length;
+    document.getElementById('stat-showing').textContent  = filteredFiles.length;
+    document.getElementById('stat-selected').textContent = selectedPaths.size;
+    const bytes = [...selectedPaths].reduce((s, p) => s + (+allFiles.find(x => x.path === p)?.size || 0), 0);
+    document.getElementById('stat-size').textContent     = formatSize(bytes);
+    document.getElementById('result-count').textContent  = `${filteredFiles.length} file${filteredFiles.length !== 1 ? 's' : ''}`;
+  }
+
+  function updateSelectAllCheckbox() {
+    const cb  = document.getElementById('select-all-checkbox');
+    const vis = filteredFiles.filter(f => selectedPaths.has(f.path)).length;
+    cb.className = vis === 0 ? 'custom-checkbox'
+                 : vis === filteredFiles.length ? 'custom-checkbox checked'
+                 : 'custom-checkbox indeterminate';
+  }
+
+  function updateActionPanel() {
+    const n = selectedPaths.size;
+    document.getElementById('action-count').textContent = `${n} file${n !== 1 ? 's' : ''} selected`;
+    document.getElementById('action-panel').classList.toggle('hidden', n === 0);
+  }
+
+  function applyTargetRecommendation() {
+    const choice = document.getElementById('target-recommendation');
+    const field = document.getElementById('target-folder');
+    const note = document.getElementById('target-recommendation-text');
+    const recommendations = {
+      'C:\\html-fetch-tool\\collected': 'Best for a dedicated, easy-to-clean collection.',
+      'C:\\Users\\daypi\\Downloads\\html-collection': 'Convenient for temporary browser downloads.',
+      'C:\\Users\\daypi\\Documents\\html-archive': 'Recommended for long-term organized storage.'
+    };
+    if (choice.value === 'custom') {
+      field.focus();
+      note.textContent = 'Enter any local folder path. Avoid system folders.';
+      return;
+    }
+    field.value = choice.value;
+    note.textContent = recommendations[choice.value];
+  }
+
+  function importPrograms(files) {
+    const imported = Array.from(files).map(file => ({
+      name: file.name,
+      path: `[Imported in browser] ${file.name}`,
+      dir: 'Local browser import',
+      size: file.size,
+      modified: new Date(file.lastModified).toISOString().slice(0, 19).replace('T', ' ')
+    }));
+    if (!imported.length) return;
+    allFiles.push(...imported);
+    document.getElementById('stats-bar').style.display = '';
+    document.getElementById('toolbar').style.display = '';
+    document.getElementById('noscan-state').style.display = 'none';
+    sortFiles('name', false);
+    toast(`✓ Imported ${imported.length} program${imported.length === 1 ? '' : 's'}`, 'success');
+  }
+
+  // ── Copy to folder ────────────────────────────────────────────
+  function copyFilesToFolder() {
+    const target = document.getElementById('target-folder').value.trim();
+    if (!target)             { toast('Enter a target folder path.', 'warn'); return; }
+    if (!selectedPaths.size) { toast('No files selected.', 'warn'); return; }
+
+    const paths = [...selectedPaths];
+    const copies = paths.map(p => `Copy-Item -Path '${p.replace(/'/g, "''")}' -Destination '${target.replace(/'/g, "''")}' -Force`).join('; ');
+    const cmd = `powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '${target.replace(/'/g, "''")}' | Out-Null; ${copies}; Write-Host 'Done'"`;
+
+    document.getElementById('modal-card').innerHTML = `
+      <div style="font-size:36px;margin-bottom:16px;">📋</div>
+      <div class="modal-title">Copy ${paths.length} File${paths.length !== 1 ? 's' : ''} to Folder</div>
+      <div class="modal-sub">
+        Target: <code>${esc(target)}</code><br/>
+        Paste and run the command below in PowerShell to copy your selected files.
+      </div>
+      <div class="cmd-box" id="cmd-text">${esc(cmd)}</div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="doCopy()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy Command
+        </button>
+        <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      </div>
+      <div class="modal-tip">💡 Open PowerShell, paste the command and press Enter.</div>`;
+
+    // Store for copy action
+    window._pendingCmd = cmd;
+    document.getElementById('modal').classList.remove('hidden');
+  }
+
+  function doCopy() {
+    navigator.clipboard.writeText(window._pendingCmd || '')
+      .then(() => toast('✓ Command copied to clipboard!', 'success'))
+      .catch(() => {
+        // Fallback: select the text box
+        const el = document.getElementById('cmd-text');
+        const range = document.createRange(); range.selectNode(el);
+        window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+        toast('Text selected — press Ctrl+C to copy', 'warn');
+      });
+  }
+
+  function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // ── Export ────────────────────────────────────────────────────
+  function exportList() {
+    if (!filteredFiles.length) { toast('Nothing to export.', 'warn'); return; }
+    const rows = filteredFiles.map(f => [f.path, f.name, formatSize(f.size), f.modified].join('\t'));
+    const blob = new Blob(['Path\tName\tSize\tModified\n' + rows.join('\n')], { type: 'text/tab-separated-values' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'html-files-list.tsv' });
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('✓ Exported as TSV', 'success');
+  }
+
+  // ── Utils ─────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function formatSize(b) {
+    b = +b || 0;
+    if (!b) return '0 B';
+    const u = ['B','KB','MB','GB'], i = Math.min(Math.floor(Math.log(b) / Math.log(1024)), 3);
+    return (b / 1024 ** i).toFixed(1) + ' ' + u[i];
+  }
+  function toast(msg, type = 'success') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast${type === 'error' ? ' error' : type === 'warn' ? ' warn' : ''}`;
+    t.textContent = msg; c.appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+  }
+</script>
+</body>
+</html>

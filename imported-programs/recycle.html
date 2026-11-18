@@ -1,0 +1,24 @@
+﻿<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NetworkBuster — Recycling Assistant</title>
+  <style>body{font-family:Arial,Helvetica,sans-serif;margin:24px}label,input,textarea{display:block;margin:8px 0;width:100%;}button{padding:8px 12px}</style>
+  <script defer src="recycle.js"></script>
+</head>
+<body>
+  <h1>Personalized Recycling Assistant</h1>
+  <p>Enter items (one per line) and get recommendations.</p>
+  <label>Items (one per line)</label>
+  <textarea id="items" rows="6"></textarea>
+  <label>Location (postal code)</label>
+  <input id="location" placeholder="e.g., 94107" />
+  <label>User ID (optional)</label>
+  <input id="userId" placeholder="user-123 (optional)" />
+  <button id="go">Get Recommendations</button>
+
+  <h2>Recommendations</h2>
+  <div id="results"></div>
+
+</body>
+</html>
