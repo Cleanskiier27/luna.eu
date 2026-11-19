@@ -1,0 +1,4 @@
+# Keep the original attachments byte-for-byte identical to their inventory hashes.
+*.md -text
+*.json -text
+*.exe binary
