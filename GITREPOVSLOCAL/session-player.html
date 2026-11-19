@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live session player | LunaRecycle</title>
+  <style>
+    :root { color-scheme: dark; font: 1rem/1.5 system-ui,sans-serif; background: #101927; color: #eef4ff; }
+    main { max-width: 62rem; margin: auto; padding: 1rem; }
+    video { display: block; width: 100%; aspect-ratio: 16/9; background: #000; margin: 1rem 0; }
+    a { color: #91ddff; } button { font: inherit; padding: .5rem 1rem; }
+  </style>
+</head>
+<body><main>
+  <a href="directory.html">Apps and guides</a>
+  <h1>Live session player</h1>
+  <p>Choose the tab or window showing your session, not this player. Video stays on this device. No audio, recording, or broadcast.</p>
+  <button id="start" type="button">Choose session</button>
+  <button id="stop" type="button" disabled>Stop sharing</button>
+  <p id="status" role="status">No session selected.</p>
+  <video id="preview" aria-label="Live session preview" controls muted playsinline></video>
+</main>
+<script>
+  const start = document.querySelector('#start');
+  const stop = document.querySelector('#stop');
+  const statusLine = document.querySelector('#status');
+  const preview = document.querySelector('#preview');
+  function finish(message) {
+    const stream = preview.srcObject;
+    preview.srcObject = null;
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    stop.disabled = true;
+    start.disabled = false;
+    statusLine.textContent = message;
+  }
+  if (!navigator.mediaDevices?.getDisplayMedia) {
+    start.disabled = true;
+    statusLine.textContent = 'Screen capture is unavailable here. Open this page in a desktop browser over HTTPS or localhost.';
+  }
+  start.onclick = async () => {
+    start.disabled = true;
+    statusLine.textContent = 'Waiting for your selection...';
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: false});
+      preview.srcObject = stream;
+      stream.getVideoTracks()[0].addEventListener('ended', () => {
+        if (preview.srcObject === stream) finish('Sharing ended.');
+      }, {once: true});
+      await preview.play();
+      if (preview.srcObject !== stream) return;
+      stop.disabled = false;
+      statusLine.textContent = 'Showing your selected session locally.';
+    } catch (error) {
+      finish(error.name === 'NotAllowedError' ? 'Sharing was canceled or blocked by the browser.' : `Unable to play the session: ${error.name}.`);
+    }
+  };
+  stop.onclick = () => finish('Sharing stopped.');
+  window.addEventListener('pagehide', () => { if (preview.srcObject) finish('Sharing stopped.'); });
+</script>
+</body></html>
