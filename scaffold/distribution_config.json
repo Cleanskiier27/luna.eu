@@ -1,0 +1,10 @@
+{
+    "software_catalog": [],
+    "download_directory": "./downloads",
+    "distribution_servers": [],
+    "cdn_enabled": true,
+    "auto_verify_checksums": true,
+    "max_concurrent_downloads": 3,
+    "retry_attempts": 3,
+    "timeout_seconds": 300
+}
