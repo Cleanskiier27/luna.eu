@@ -1,12 +1,6 @@
 ﻿// Command Index for NetBot Command Search
 const COMMAND_INDEX = [
   {
-    name: 'Flash Deploy',
-    keywords: ['deploy', 'vercel', 'production', 'push', 'release'],
-    command: 'flash_commands.bat deploy',
-    description: 'Deploy to Vercel production in one command. Automatically commits changes with timestamp.'
-  },
-  {
     name: 'Flash Sync',
     keywords: ['sync', 'branches', 'merge', 'conflict', 'main', 'bigtree'],
     command: 'flash_commands.bat sync',
