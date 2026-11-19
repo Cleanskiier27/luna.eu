@@ -6,6 +6,12 @@
 
 **NetworkBuster** is a professional OS imaging and device management tool designed for creating bootable USB devices with various operating systems. The application provides an intuitive interface for managing device flashing operations with advanced features including GPU-accelerated data processing and satellite frequency mode capabilities.
 
+## Scaffold attachments
+
+The [attachment inventory](scaffold/attachment-inventory.csv) lists the four original files in [`scaffold/`](scaffold/) with their SHA-256 hashes and review status. `scm.md` and `scm (2).md` are identical; both names are preserved. `distribution_config.json` and `SoftwareDistributor.exe` are review artifacts, not prerequisites for running Luna.
+
+All four are marked **In Progress**. A matching hash identifies the recorded file; it does not establish that the executable is safe to run.
+
 ## Site directory
 
 To preview Luna locally, run `npm start` from the repository root with npm and
