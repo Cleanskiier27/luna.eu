@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Live 3D satellite-orbit simulation and telemetry stream.">
+  <title>Orbital Simulation — LunaRecycle</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      background: #070a13;
+      color: #eef2ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 0%, #171b3d 0, #090c19 48%, #070a13 100%);
+    }
+    button, input { font: inherit; }
+    button, a { color: inherit; }
+    .shell { width: min(1240px, calc(100% - 32px)); margin: auto; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 0; }
+    .brand { color: #c7d2fe; font-weight: 800; letter-spacing: -.04em; text-decoration: none; }
+    .back { color: #a5b4fc; text-decoration: none; font-size: .9rem; }
+    .eyebrow { color: #818cf8; text-transform: uppercase; letter-spacing: .18em; font-size: .72rem; font-weight: 800; }
+    h1 { margin: 8px 0 6px; font-size: clamp(1.7rem, 4vw, 2.5rem); letter-spacing: -.05em; }
+    .intro { margin: 0 0 22px; color: #9da8c5; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 16px; padding-bottom: 30px; }
+    .panel { border: 1px solid #252b48; border-radius: 18px; background: rgba(11, 15, 31, .82); box-shadow: 0 20px 70px #02040b66; }
+    .stage { min-width: 0; overflow: hidden; }
+    .stage-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 18px; border-bottom: 1px solid #202642; }
+    .live { display: flex; align-items: center; gap: 8px; color: #a7f3d0; font-size: .78rem; font-weight: 700; letter-spacing: .08em; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 12px #34d399; }
+    .stage-label { color: #7985a6; font-size: .78rem; }
+    canvas { display: block; width: 100%; aspect-ratio: 1.55; min-height: 300px; max-height: 620px; }
+    .controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 18px; border-top: 1px solid #202642; }
+    .control-button { border: 1px solid #444d79; border-radius: 9px; padding: 9px 14px; background: #181d38; cursor: pointer; }
+    .control-button:hover { border-color: #818cf8; background: #22284a; }
+    .speed { display: flex; align-items: center; gap: 10px; margin-left: auto; color: #9da8c5; font-size: .82rem; }
+    input[type="range"] { width: 110px; accent-color: #818cf8; }
+    aside { display: flex; flex-direction: column; gap: 16px; }
+    .info { padding: 18px; }
+    h2 { margin: 0 0 14px; font-size: .92rem; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .metric { padding: 12px; border: 1px solid #252b48; border-radius: 12px; background: #0c1123; }
+    .metric span { display: block; color: #7e89a8; font-size: .7rem; }
+    .metric strong { display: block; margin-top: 5px; font-size: 1rem; font-variant-numeric: tabular-nums; }
+    .telemetry { display: flex; flex-direction: column; gap: 11px; }
+    .event { display: grid; grid-template-columns: 62px 1fr; gap: 9px; color: #a4afc9; font-size: .76rem; line-height: 1.4; }
+    .event time { color: #717e9f; font-variant-numeric: tabular-nums; }
+    .event p { margin: 0; }
+    .event b { color: #c7d2fe; font-weight: 600; }
+    footer { padding: 4px 0 28px; color: #687493; font-size: .76rem; }
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+      canvas { min-height: 260px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="index.html">LunaRecycle</a>
+      <a class="back" href="index.html">← Back to home</a>
+    </header>
+    <main>
+      <div class="eyebrow">Mission control · Simulation feed</div>
+      <h1>Low Earth orbit</h1>
+      <p class="intro">Live 3D orbital visualization with a continuously updating telemetry stream.</p>
+      <div class="layout">
+        <section class="panel stage" aria-label="3D orbital simulation">
+          <div class="stage-head">
+            <span class="live"><span class="dot" id="liveDot"></span><span id="liveState">STREAMING</span></span>
+            <span class="stage-label">LEO-01 · EARTH VIEW</span>
+          </div>
+          <canvas id="orbitCanvas" aria-label="Animated 3D visualization of a satellite orbiting Earth"></canvas>
+          <div class="controls">
+            <button class="control-button" id="toggleButton" type="button" aria-pressed="false">Pause stream</button>
+            <button class="control-button" id="resetButton" type="button">Reset view</button>
+            <label class="speed">Orbit speed <input id="speedControl" type="range" min="0.25" max="3" step="0.25" value="1"><output id="speedValue">1×</output></label>
+          </div>
+        </section>
+        <aside>
+          <section class="panel info">
+            <h2>Live telemetry</h2>
+            <div class="metrics">
+              <div class="metric"><span>ALTITUDE</span><strong id="altitude">408 km</strong></div>
+              <div class="metric"><span>VELOCITY</span><strong id="velocity">7.66 km/s</strong></div>
+              <div class="metric"><span>ORBIT PERIOD</span><strong>92.7 min</strong></div>
+              <div class="metric"><span>MISSION TIME</span><strong id="missionTime">00:00:00</strong></div>
+            </div>
+          </section>
+          <section class="panel info">
+            <h2>Telemetry stream</h2>
+            <div class="telemetry" id="telemetry" aria-live="polite">
+              <div class="event"><time>--:--:--</time><p><b>LINK</b> Establishing mission feed…</p></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <footer>Illustrative orbital simulation · Not connected to a live spacecraft feed</footer>
+  </div>
+  <script>
+    (() => {
+      const canvas = document.getElementById('orbitCanvas');
+      const context = canvas.getContext('2d');
+      const toggleButton = document.getElementById('toggleButton');
+      const speedControl = document.getElementById('speedControl');
+      const speedValue = document.getElementById('speedValue');
+      const telemetry = document.getElementById('telemetry');
+      const liveState = document.getElementById('liveState');
+      const liveDot = document.getElementById('liveDot');
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const events = [
+        ['NAV', 'Orbit solution updated'],
+        ['LINK', 'Telemetry downlink nominal'],
+        ['THERMAL', 'Solar array temperature stable'],
+        ['TRACK', 'Ground station handoff complete'],
+        ['POWER', 'Solar array output nominal']
+      ];
+      let width = 0;
+      let height = 0;
+      let angle = -0.8;
+      let paused = reducedMotion;
+      let speed = 1;
+      let elapsed = 0;
+      let lastTime = 0;
+      let lastEvent = 0;
+      let eventIndex = 0;
+      let frameId;
+      let stars = [];
+
+      function resize() {
+        const bounds = canvas.getBoundingClientRect();
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        width = bounds.width;
+        height = bounds.height;
+        canvas.width = Math.round(width * ratio);
+        canvas.height = Math.round(height * ratio);
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        stars = Array.from({ length: Math.floor(width * height / 4800) }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 1.2 + 0.25,
+          a: Math.random() * 0.45 + 0.2
+        }));
+        draw();
+      }
+
+      function project(x, y, z, cx, cy, scale) {
+        const tilt = 0.43;
+        return {
+          x: cx + (x * Math.cos(angle) - z * Math.sin(angle)) * scale,
+          y: cy + (x * Math.sin(angle) * Math.sin(tilt) + y * Math.cos(tilt) + z * Math.cos(angle) * Math.sin(tilt)) * scale,
+          depth: x * Math.sin(angle) * Math.cos(tilt) - z * Math.cos(angle) * Math.cos(tilt) + y * Math.sin(tilt)
+        };
+      }
+
+      function draw() {
+        if (!width || !height) return;
+        const cx = width * 0.51;
+        const cy = height * 0.52;
+        const radius = Math.min(width * 0.205, height * 0.32, 145);
+        const orbitRadius = radius * 1.7;
+        context.clearRect(0, 0, width, height);
+        context.fillStyle = '#070a13';
+        context.fillRect(0, 0, width, height);
+        for (const star of stars) {
+          context.globalAlpha = star.a;
+          context.fillStyle = '#dbeafe';
+          context.beginPath();
+          context.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+          context.fill();
+        }
+        context.globalAlpha = 1;
+
+        context.beginPath();
+        for (let i = 0; i <= 160; i++) {
+          const theta = i / 160 * Math.PI * 2;
+          const point = project(Math.cos(theta) * orbitRadius, 0, Math.sin(theta) * orbitRadius, cx, cy, 1);
+          if (i === 0) context.moveTo(point.x, point.y);
+          else context.lineTo(point.x, point.y);
+        }
+        context.closePath();
+        context.strokeStyle = '#7785ff8a';
+        context.lineWidth = 1.3;
+        context.setLineDash([4, 6]);
+        context.stroke();
+        context.setLineDash([]);
+
+        const globe = context.createRadialGradient(cx - radius * 0.38, cy - radius * 0.42, radius * 0.04, cx, cy, radius * 1.08);
+        globe.addColorStop(0, '#67e8f9');
+        globe.addColorStop(0.42, '#2563eb');
+        globe.addColorStop(0.8, '#172554');
+        globe.addColorStop(1, '#080e22');
+        context.save();
+        context.shadowColor = '#3b82f6';
+        context.shadowBlur = 32;
+        context.beginPath();
+        context.arc(cx, cy, radius, 0, Math.PI * 2);
+        context.fillStyle = globe;
+        context.fill();
+        context.restore();
+
+        context.save();
+        context.beginPath();
+        context.arc(cx, cy, radius * 0.99, 0, Math.PI * 2);
+        context.clip();
+        context.strokeStyle = '#9bd8ff38';
+        context.lineWidth = 1;
+        for (let i = -2; i <= 2; i++) {
+          const lat = i * 0.34;
+          const rx = radius * Math.cos(lat);
+          const ry = radius * Math.cos(lat) * 0.32;
+          context.beginPath();
+          context.ellipse(cx + radius * Math.sin(lat) * 0.25, cy + radius * Math.sin(lat) * 0.25, rx, ry, -0.38, 0, Math.PI * 2);
+          context.stroke();
+        }
+        for (let i = 0; i < 4; i++) {
+          context.beginPath();
+          context.ellipse(cx, cy, radius * Math.abs(Math.cos(i * Math.PI / 4)), radius, i * Math.PI / 4, 0, Math.PI * 2);
+          context.stroke();
+        }
+        context.restore();
+
+        const sat = project(Math.cos(angle * 2) * orbitRadius, 0, Math.sin(angle * 2) * orbitRadius, cx, cy, 1);
+        const satellite = (x, y, size) => {
+          context.save();
+          context.translate(x, y);
+          context.rotate(-0.4);
+          context.fillStyle = '#818cf8';
+          context.strokeStyle = '#c7d2fe';
+          context.lineWidth = 1;
+          context.fillRect(-size * 2.2, -size * 0.48, size * 1.5, size * 0.96);
+          context.strokeRect(-size * 2.2, -size * 0.48, size * 1.5, size * 0.96);
+          context.fillRect(size * 0.7, -size * 0.48, size * 1.5, size * 0.96);
+          context.strokeRect(size * 0.7, -size * 0.48, size * 1.5, size * 0.96);
+          context.fillStyle = '#e0e7ff';
+          context.fillRect(-size * 0.65, -size * 0.75, size * 1.3, size * 1.5);
+          context.restore();
+        };
+        satellite(sat.x, sat.y, Math.max(5, radius * 0.075));
+        context.fillStyle = '#dbeafe';
+        context.font = '600 11px system-ui, sans-serif';
+        context.fillText('LEO-01', sat.x + 16, sat.y - 12);
+
+        context.fillStyle = '#9ba8c7';
+        context.font = '11px system-ui, sans-serif';
+        context.fillText('EARTH', cx - 18, cy + radius + 20);
+      }
+
+      function addEvent() {
+        const [type, message] = events[eventIndex++ % events.length];
+        const timestamp = new Date().toLocaleTimeString('en-GB', { hour12: false });
+        const row = document.createElement('div');
+        row.className = 'event';
+        const time = document.createElement('time');
+        time.textContent = timestamp;
+        const text = document.createElement('p');
+        const label = document.createElement('b');
+        label.textContent = type;
+        text.append(label, document.createTextNode(` ${message}`));
+        row.append(time, text);
+        telemetry.prepend(row);
+        while (telemetry.children.length > 5) telemetry.lastElementChild.remove();
+      }
+
+      function tick(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        const delta = Math.min((timestamp - lastTime) / 1000, 0.05);
+        lastTime = timestamp;
+        if (!paused) {
+          elapsed += delta;
+          angle += delta * speed * 0.28;
+          if (elapsed - lastEvent >= 3) {
+            lastEvent = elapsed;
+            addEvent();
+          }
+          document.getElementById('missionTime').textContent = new Date(elapsed * 1000).toISOString().slice(11, 19);
+          document.getElementById('altitude').textContent = `${Math.round(408 + Math.sin(angle * 2) * 2)} km`;
+          document.getElementById('velocity').textContent = `${(7.66 + Math.cos(angle * 2) * 0.01).toFixed(2)} km/s`;
+        }
+        draw();
+        frameId = requestAnimationFrame(tick);
+      }
+
+      toggleButton.addEventListener('click', () => {
+        paused = !paused;
+        toggleButton.textContent = paused ? 'Resume stream' : 'Pause stream';
+        toggleButton.setAttribute('aria-pressed', String(paused));
+        liveState.textContent = paused ? 'PAUSED' : 'STREAMING';
+        liveDot.style.background = paused ? '#fbbf24' : '#34d399';
+        liveDot.style.boxShadow = paused ? '0 0 12px #fbbf24' : '0 0 12px #34d399';
+        lastTime = 0;
+      });
+      document.getElementById('resetButton').addEventListener('click', () => {
+        angle = -0.8;
+        elapsed = 0;
+        lastEvent = 0;
+        draw();
+      });
+      speedControl.addEventListener('input', () => {
+        speed = Number(speedControl.value);
+        speedValue.textContent = `${speed}×`;
+      });
+      window.addEventListener('resize', resize);
+      window.addEventListener('pagehide', () => cancelAnimationFrame(frameId), { once: true });
+      if (reducedMotion) {
+        toggleButton.textContent = 'Resume stream';
+        toggleButton.setAttribute('aria-pressed', 'true');
+        liveState.textContent = 'PAUSED';
+      }
+      resize();
+      addEvent();
+      frameId = requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>

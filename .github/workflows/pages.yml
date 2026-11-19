@@ -33,6 +33,7 @@ jobs:
           test -f GITREPOVSLOCAL/networkbuster/history.html
           test -f GITREPOVSLOCAL/html-fetch-tool/index.html
           test -f GITREPOVSLOCAL/launch.html
+          test -f GITREPOVSLOCAL/rocket-launch.html
           test -f GITREPOVSLOCAL/admin.html
           test -f GITREPOVSLOCAL/azure-devops-dashboard.html
           test -f GITREPOVSLOCAL/post/index.html
@@ -50,6 +51,7 @@ jobs:
           grep -q 'aiplatform.googleapis.com' GITREPOVSLOCAL/post/index.html
           grep -q 'PHASE 6' GITREPOVSLOCAL/documentation.html
           grep -q 'Documentation' GITREPOVSLOCAL/index.html
+          grep -q 'rocket-launch.html' GITREPOVSLOCAL/index.html
           ! grep -R -nE 'gho_[A-Za-z0-9]+|access_token=[A-Za-z0-9._-]+' GITREPOVSLOCAL README.md
           python3 - <<'PY'
           from html.parser import HTMLParser
