@@ -1,0 +1,7 @@
+{
+  "name": "luna-recycle-site",
+  "private": true,
+  "scripts": {
+    "start": "python netbot_server.py"
+  }
+}

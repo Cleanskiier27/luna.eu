@@ -8,6 +8,10 @@
 
 ## Site directory
 
+To preview Luna locally, run `npm start` from the repository root with npm and
+Python 3 on your PATH (`python` must invoke Python 3). No `npm install` is
+needed. Open <http://127.0.0.1:4190/>. Press Ctrl+C to stop the server.
+
 ### NetBot with Claude
 
 For local use, set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` (a Messages API model ID available to your account) in the server process environment, then run `python netbot_server.py` from this repository. Open `http://127.0.0.1:4190/imported-programs/` and select **Claude** in NetBot. Only the current message is sent to Anthropic; previous chat turns and repository files are not included. Do not send secrets. API usage may incur charges. The key stays on the server. GitHub Pages continues to use local replies; this loopback server is not a public deployment.
