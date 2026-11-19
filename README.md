@@ -6,6 +6,16 @@
 
 **NetworkBuster** is a professional OS imaging and device management tool designed for creating bootable USB devices with various operating systems. The application provides an intuitive interface for managing device flashing operations with advanced features including GPU-accelerated data processing and satellite frequency mode capabilities.
 
+## Site directory
+
+### NetBot with Claude
+
+For local use, set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` (a Messages API model ID available to your account) in the server process environment, then run `python netbot_server.py` from this repository. Open `http://127.0.0.1:4190/imported-programs/` and select **Claude** in NetBot. Only the current message is sent to Anthropic; previous chat turns and repository files are not included. Do not send secrets. API usage may incur charges. The key stays on the server. GitHub Pages continues to use local replies; this loopback server is not a public deployment.
+
+### Apps and guides
+
+Open [Apps and guides](GITREPOVSLOCAL/directory.html) directly in a browser or select **Apps and guides** on the LunaRecycle homepage. Search titles and descriptions; no server or installation is required. To add a destination, add a list item to the Apps or Guides section of `directory.html` with a site-relative link and a short description. The search picks it up automatically.
+
 ## 📋 Table of Contents
 
 - [Features](#features)

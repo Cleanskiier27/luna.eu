@@ -253,6 +253,10 @@ class NetworkBusterChatbot {
           <button class="chatbot-minimize" id="chatbot-minimize">−</button>
         </div>
         <div class="chatbot-messages" id="chatbot-messages"></div>
+        <label id="chatbot-provider-label" hidden>Reply using
+          <select id="chatbot-provider"><option value="local">Local NetBot</option>
+          <option value="claude">Claude (sends this message to Anthropic)</option></select>
+        </label>
         <div class="chatbot-typing" id="chatbot-typing" style="display: none;">
           <span class="typing-dot"></span>
           <span class="typing-dot"></span>
@@ -272,6 +276,7 @@ class NetworkBusterChatbot {
   }
 
   attachEventListeners() {
+    document.getElementById('chatbot-provider-label').hidden = location.origin !== 'http://127.0.0.1:4190';
     const input = document.getElementById('chatbot-input');
     const sendBtn = document.getElementById('chatbot-send');
     const minimizeBtn = document.getElementById('chatbot-minimize');
@@ -303,11 +308,30 @@ class NetworkBusterChatbot {
     });
   }
 
-  handleUserInput(message) {
-    if (!message.trim()) return;
+  async handleUserInput(message) {
+    if (!message.trim() || this.isTyping) return;
     this.addMessage('user', message);
     this.conversationHistory.push({ role: 'user', content: message });
     this.showTyping();
+    if (document.getElementById('chatbot-provider').value === 'claude') {
+      try {
+        const result = await fetch('/api/netbot', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message }), signal: AbortSignal.timeout(35000)
+        });
+        const body = await result.json();
+        if (!result.ok || typeof body.reply !== 'string') {
+          this.addMessage('bot', body.error || 'Claude did not return a reply.');
+        } else {
+          this.addMessage('bot', body.reply);
+        }
+      } catch {
+        this.addMessage('bot', 'Cannot reach the Claude backend. Restart the local server or select Local NetBot.');
+      } finally {
+        this.hideTyping();
+      }
+      return;
+    }
     const responseTime = Math.random() * 1000 + 500;
     setTimeout(() => {
       const response = this.generateResponse(message);
@@ -415,6 +439,7 @@ class NetworkBusterChatbot {
   formatMessage(text) {
     // Convert newlines to <br> and preserve formatting
     return text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/\n/g, '<br>')
       .replace(/•/g, '<span class="bullet">•</span>')
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
