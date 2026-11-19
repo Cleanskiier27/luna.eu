@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LunaRecycle OS imaging, device management, GPU tools, and local file organization.">
+  <title>LunaRecycle — Device Intelligence, Reimagined</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: #f3f4ff; background: #080a13; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 20% 0%, rgba(99,102,241,.32), transparent 45%), radial-gradient(ellipse at 90% 24%, rgba(168,85,247,.2), transparent 38%); }
+    .shell { position: relative; width: min(1180px, calc(100% - 36px)); margin: auto; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; }
+    .brand { font-weight: 800; letter-spacing: -.04em; font-size: 1.25rem; }
+    .navlinks { display: flex; gap: 10px; flex-wrap: wrap; }
+    a { color: inherit; }
+    .pill, .primary { border: 1px solid #303654; border-radius: 999px; padding: 10px 16px; text-decoration: none; background: rgba(16,20,39,.72); }
+    .primary { border-color: #818cf8; background: linear-gradient(135deg, #4f46e5, #9333ea); font-weight: 700; }
+    .hero { display: grid; grid-template-columns: 1.25fr .75fr; gap: 46px; align-items: center; padding: clamp(60px, 12vw, 130px) 0 90px; }
+    .eyebrow { color: #a5b4fc; text-transform: uppercase; letter-spacing: .18em; font-size: .78rem; font-weight: 700; }
+    h1 { margin: 16px 0 22px; max-width: 820px; font-size: clamp(3.5rem, 9vw, 7.3rem); line-height: .91; letter-spacing: -.07em; }
+    .lead { max-width: 650px; color: #b2b9d2; font-size: clamp(1.05rem, 2vw, 1.3rem); line-height: 1.65; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .visual { aspect-ratio: 1; border: 1px solid rgba(129,140,248,.34); border-radius: 32px; background: linear-gradient(145deg, rgba(26,31,61,.92), rgba(13,16,32,.92)); box-shadow: 0 30px 100px rgba(76,29,149,.32); display: grid; place-items: center; overflow: hidden; position: relative; }
+    .visual::before { content: ""; width: 58%; aspect-ratio: 1; border-radius: 50%; border: 1px solid #818cf8; box-shadow: 0 0 0 28px rgba(99,102,241,.08), 0 0 0 72px rgba(168,85,247,.05); }
+    .orb { position: absolute; font-size: clamp(4rem, 9vw, 7rem); filter: drop-shadow(0 0 30px #6366f1); }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding-bottom: 80px; }
+    article { min-height: 210px; padding: 24px; border: 1px solid #282e49; border-radius: 20px; background: rgba(16,20,39,.7); }
+    article span { font-size: 1.8rem; }
+    h2 { margin: 22px 0 10px; }
+    article p { color: #98a2be; line-height: 1.6; }
+    footer { padding: 28px 0 38px; border-top: 1px solid #252a42; color: #79829e; display: flex; justify-content: space-between; gap: 20px; }
+    @media (max-width: 820px) { .hero { grid-template-columns: 1fr; } .visual { max-width: 460px; } .features { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav><div class="brand">LunaRecycle</div><div class="navlinks"><a class="pill" href="directory.html">Apps and guides</a><a class="pill" href="ai-for-all.html">AI-for-All</a><a class="pill" href="seo-toolkit.html">SEO toolkit</a><a class="pill" href="admin.html">Admin</a><a class="pill" href="launch.html">Launch</a><a class="pill" href="documentation.html">Documentation</a><a class="pill" href="simulation3d.html">3D simulation</a><a class="pill" href="rocket-launch.html">Rocket launch sim</a><a class="pill" href="networkbuster/history.html">History</a><a class="pill" href="html-fetch-tool/">HTML tools</a></div></nav>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">NetworkBuster / LunaRecycle</div>
+        <h1>Device intelligence, reimagined.</h1>
+        <p class="lead">A clean launch point for OS imaging, connected-device workflows, GPU-assisted processing, and local HTML organization.</p>
+        <div class="actions"><a class="primary" href="launch.html">Launch all programs →</a><a class="pill" href="rocket-launch.html">Run rocket launch simulation</a><a class="pill" href="networkbuster/">Open device app</a><a class="pill" href="admin.html">Administration</a><a class="pill" href="post/">Google AI</a><a class="pill" href="networkbuster/history.html">Build history</a></div>
+      </div>
+      <div class="visual" aria-hidden="true"><div class="orb">◉</div></div>
+    </section>
+    <section class="features" aria-label="Capabilities">
+      <article><span>💾</span><h2>OS imaging</h2><p>Choose Linux, Windows, utility, or privacy-focused operating systems from one guided workflow.</p></article>
+      <article><span>⚡</span><h2>GPU processing</h2><p>Explore accelerated table analysis with graceful browser fallback and satellite-aware tooling.</p></article>
+      <article><span>📁</span><h2>Local organization</h2><p>Scan local HTML files into a searchable catalog through the integrated PowerShell fetcher.</p></article>
+      <article><span>🤖</span><h2>NetBot context</h2><p>Browse imported programs, build history, available files, and machine-readable application context.</p></article>
+      <article><span>☁️</span><h2>Cloud administration</h2><p>Open Azure pipelines, Google AI Platform controls, metrics, IAM troubleshooting, and the POST readiness route.</p></article>
+      <article><span>🧩</span><h2>94 client apps</h2><p>Launch the published Google Cloud SDK app collection and the final inspected LunaRecycle release.</p></article>
+    </section>
+    <footer><span>Published from main through GitHub Actions.</span><a href="https://github.com/Cleanskiier27/luna.eu">Source repository</a></footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,719 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi 7 Mesh - Encrypted Port Overlay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            color: #0f0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        .overlay {
+            position: fixed;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .top-bar {
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88;
+            letter-spacing: 2px;
+        }
+
+        .encryption-status {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 5px;
+            font-size: 0.9em;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.secure {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        .status-dot.warning {
+            background: #ffaa00;
+            box-shadow: 0 0 10px #ffaa00;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        .side-panel {
+            position: fixed;
+            right: 0;
+            top: 80px;
+            bottom: 80px;
+            width: 350px;
+            background: rgba(0, 0, 0, 0.85);
+            border-left: 2px solid #00ff88;
+            padding: 20px;
+            overflow-y: auto;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #00ff88;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 10px;
+        }
+
+        .port-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .port-item {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .port-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        .port-item.encrypted::before {
+            background: #00ff88;
+            animation: encrypt-flow 2s infinite;
+        }
+
+        .port-item.unencrypted::before {
+            background: #ff4444;
+            animation: none;
+        }
+
+        @keyframes encrypt-flow {
+            0%, 100% { box-shadow: 0 0 10px #00ff88; }
+            50% { box-shadow: 0 0 20px #00ff88, 0 0 30px #00ff88; }
+        }
+
+        .port-item:hover {
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-5px);
+        }
+
+        .port-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .port-name {
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #00ff88;
+        }
+
+        .port-number {
+            font-family: 'Courier New', monospace;
+            color: #00ffff;
+            font-size: 0.9em;
+        }
+
+        .port-details {
+            font-size: 0.85em;
+            color: #88ffaa;
+            line-height: 1.6;
+        }
+
+        .encryption-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 8px;
+        }
+
+        .encryption-badge.aes256 {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+
+        .encryption-badge.wpa3 {
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            border: 1px solid #00ffff;
+        }
+
+        .encryption-badge.none {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            border: 1px solid #ff4444;
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #88ffaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .mesh-info {
+            position: fixed;
+            left: 20px;
+            bottom: 80px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 20px;
+            width: 300px;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .mesh-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #00ff88;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .mesh-node {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(0, 255, 136, 0.05);
+            border-left: 3px solid #00ff88;
+            border-radius: 5px;
+        }
+
+        .node-icon {
+            font-size: 1.5em;
+        }
+
+        .node-info {
+            flex: 1;
+        }
+
+        .node-name {
+            font-weight: 600;
+            color: #00ff88;
+            font-size: 0.95em;
+        }
+
+        .node-signal {
+            font-size: 0.75em;
+            color: #88ffaa;
+        }
+
+        .controls {
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            transform: scale(1.1);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 4px;
+        }
+
+        .bandwidth-graph {
+            margin-top: 15px;
+            height: 60px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid #00ff88;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bandwidth-bar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(180deg, #00ff88 0%, rgba(0, 255, 136, 0.3) 100%);
+            transition: height 0.5s;
+        }
+
+        .wifi7-badge {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #00ff88 0%, #00ffff 100%);
+            color: #000;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1em;
+            letter-spacing: 2px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            animation: glow 2s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 136, 0.8), 0 0 60px rgba(0, 255, 136, 0.6); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div class="wifi7-badge">WiFi 7 MESH NETWORK</div>
+
+    <div class="overlay top-bar">
+        <div class="logo">🛡️ ENCRYPTED PORT OVERLAY</div>
+        <div class="encryption-status">
+            <div class="status-indicator">
+                <div class="status-dot secure"></div>
+                <span>WPA3-Enterprise</span>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot secure"></div>
+                <span>AES-256-GCM</span>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot secure"></div>
+                <span id="dataRate">5.8 Gbps</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="control-btn" onclick="toggleMesh()" title="Toggle Mesh">🌐</button>
+        <button class="control-btn" onclick="toggleEncryption()" title="Toggle Encryption">🔐</button>
+        <button class="control-btn" onclick="refreshPorts()" title="Refresh">🔄</button>
+        <button class="control-btn" onclick="toggleStats()" title="Statistics">📊</button>
+    </div>
+
+    <div class="side-panel">
+        <div class="panel-title">🔒 Encrypted Ports</div>
+        <div class="port-list" id="portList">
+            <!-- Ports will be populated here -->
+        </div>
+    </div>
+
+    <div class="mesh-info">
+        <div class="mesh-title">📡 WiFi 7 Mesh Nodes</div>
+        <div id="meshNodes">
+            <!-- Mesh nodes will be populated here -->
+        </div>
+        <div class="bandwidth-graph">
+            <div class="bandwidth-bar" id="bandwidthBar" style="height: 65%"></div>
+        </div>
+    </div>
+
+    <div class="overlay bottom-bar">
+        <div class="stat-box">
+            <div class="stat-value" id="totalPorts">0</div>
+            <div class="stat-label">Active Ports</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="encryptedCount">0</div>
+            <div class="stat-label">Encrypted</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="bandwidth">0 Gbps</div>
+            <div class="stat-label">Throughput</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="latency">0 ms</div>
+            <div class="stat-label">Latency</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="meshStatus">ONLINE</div>
+            <div class="stat-label">Mesh Status</div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup for animated mesh background
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Mesh network nodes
+        const meshData = [
+            { id: 1, name: 'Main Router', signal: 100, encryption: 'WPA3', x: 0.5, y: 0.3 },
+            { id: 2, name: 'Node Alpha', signal: 95, encryption: 'WPA3', x: 0.3, y: 0.5 },
+            { id: 3, name: 'Node Beta', signal: 92, encryption: 'WPA3', x: 0.7, y: 0.5 },
+            { id: 4, name: 'Node Gamma', signal: 88, encryption: 'WPA3', x: 0.5, y: 0.7 }
+        ];
+
+        // Port data with encryption status
+        const ports = [
+            { port: 3000, name: 'Web Server', protocol: 'HTTPS', encryption: 'AES-256-GCM', status: 'encrypted', traffic: 'High' },
+            { port: 3001, name: 'API Server', protocol: 'HTTPS', encryption: 'AES-256-GCM', status: 'encrypted', traffic: 'Medium' },
+            { port: 3002, name: 'Audio Stream', protocol: 'WSS', encryption: 'TLS 1.3', status: 'encrypted', traffic: 'High' },
+            { port: 443, name: 'HTTPS', protocol: 'TLS', encryption: 'WPA3', status: 'encrypted', traffic: 'Very High' },
+            { port: 22, name: 'SSH', protocol: 'SSH', encryption: 'Ed25519', status: 'encrypted', traffic: 'Low' },
+            { port: 8080, name: 'Proxy', protocol: 'HTTP', encryption: 'None', status: 'unencrypted', traffic: 'Medium' }
+        ];
+
+        // Particles for mesh visualization
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.random() * 2 + 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.6)';
+                ctx.fill();
+            }
+        }
+
+        const particles = Array.from({ length: 100 }, () => new Particle());
+
+        // Mesh node visualization
+        const meshNodes = meshData.map(node => ({
+            ...node,
+            x: node.x * canvas.width,
+            y: node.y * canvas.height
+        }));
+
+        function drawMesh() {
+            // Draw connections between nodes
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.2)';
+            ctx.lineWidth = 2;
+            
+            for (let i = 0; i < meshNodes.length; i++) {
+                for (let j = i + 1; j < meshNodes.length; j++) {
+                    const distance = Math.hypot(
+                        meshNodes[i].x - meshNodes[j].x,
+                        meshNodes[i].y - meshNodes[j].y
+                    );
+                    
+                    if (distance < 400) {
+                        ctx.beginPath();
+                        ctx.moveTo(meshNodes[i].x, meshNodes[i].y);
+                        ctx.lineTo(meshNodes[j].x, meshNodes[j].y);
+                        ctx.stroke();
+                        
+                        // Animated data packets
+                        const progress = (Date.now() % 2000) / 2000;
+                        const packetX = meshNodes[i].x + (meshNodes[j].x - meshNodes[i].x) * progress;
+                        const packetY = meshNodes[i].y + (meshNodes[j].y - meshNodes[i].y) * progress;
+                        
+                        ctx.beginPath();
+                        ctx.arc(packetX, packetY, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = '#00ffff';
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // Draw nodes
+            meshNodes.forEach(node => {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.3)';
+                ctx.fill();
+                ctx.strokeStyle = '#00ff88';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Pulse effect
+                const pulse = Math.sin(Date.now() / 500) * 0.3 + 0.7;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 15 * pulse, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(0, 255, 136, ${0.5 * pulse})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            // Connect nearby particles
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(0, 255, 136, ${0.2 * (1 - distance / 100)})`;
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            drawMesh();
+            requestAnimationFrame(animate);
+        }
+
+        // Populate ports
+        function renderPorts() {
+            const portList = document.getElementById('portList');
+            portList.innerHTML = ports.map(port => `
+                <div class="port-item ${port.status}">
+                    <div class="port-header">
+                        <span class="port-name">${port.name}</span>
+                        <span class="port-number">:${port.port}</span>
+                    </div>
+                    <div class="port-details">
+                        Protocol: ${port.protocol}<br>
+                        Traffic: ${port.traffic}<br>
+                        Status: ${port.status === 'encrypted' ? '🔒 Secured' : '⚠️ Unsecured'}
+                    </div>
+                    <span class="encryption-badge ${port.encryption.toLowerCase().replace(/[^a-z0-9]/g, '')}">${port.encryption}</span>
+                </div>
+            `).join('');
+
+            updateStats();
+        }
+
+        // Populate mesh nodes
+        function renderMeshNodes() {
+            const meshNodesEl = document.getElementById('meshNodes');
+            meshNodesEl.innerHTML = meshData.map(node => `
+                <div class="mesh-node">
+                    <div class="node-icon">📡</div>
+                    <div class="node-info">
+                        <div class="node-name">${node.name}</div>
+                        <div class="node-signal">Signal: ${node.signal}% | ${node.encryption}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update statistics
+        function updateStats() {
+            const encrypted = ports.filter(p => p.status === 'encrypted').length;
+            document.getElementById('totalPorts').textContent = ports.length;
+            document.getElementById('encryptedCount').textContent = encrypted;
+            
+            // Simulated metrics
+            const bandwidth = (Math.random() * 2 + 4).toFixed(1);
+            document.getElementById('bandwidth').textContent = bandwidth + ' Gbps';
+            
+            const latency = Math.floor(Math.random() * 5 + 1);
+            document.getElementById('latency').textContent = latency + ' ms';
+            
+            // Update bandwidth bar
+            const barHeight = Math.random() * 40 + 40;
+            document.getElementById('bandwidthBar').style.height = barHeight + '%';
+        }
+
+        // Control functions
+        function toggleMesh() {
+            console.log('Toggle mesh visualization');
+        }
+
+        function toggleEncryption() {
+            console.log('Toggle encryption details');
+        }
+
+        function refreshPorts() {
+            console.log('Refreshing ports...');
+            renderPorts();
+            renderMeshNodes();
+        }
+
+        function toggleStats() {
+            console.log('Toggle statistics view');
+        }
+
+        // Auto-refresh
+        setInterval(() => {
+            updateStats();
+            // Simulate data rate changes
+            const dataRate = (Math.random() * 2 + 4).toFixed(1);
+            document.getElementById('dataRate').textContent = dataRate + ' Gbps';
+        }, 2000);
+
+        // Initialize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            meshNodes.forEach((node, i) => {
+                node.x = meshData[i].x * canvas.width;
+                node.y = meshData[i].y * canvas.height;
+            });
+        });
+
+        animate();
+        renderPorts();
+        renderMeshNodes();
+        updateStats();
+
+        // Check actual port status
+        async function checkPortStatus() {
+            try {
+                const response = await fetch('/api/status');
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('System status:', data);
+                }
+            } catch (e) {
+                console.log('Port check failed:', e);
+            }
+        }
+
+        checkPortStatus();
+        setInterval(checkPortStatus, 10000);
+    </script>
+</body>
+</html>
