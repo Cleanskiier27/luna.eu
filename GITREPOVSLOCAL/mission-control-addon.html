@@ -8,7 +8,7 @@
   <title>LunaRecycle — Mission Control &amp; SatGPU Addon</title>
   <link rel="stylesheet" href="mission-control-addon.css">
 </head>
-<body class="crt-scanlines">
+<body class="crt-scanlines blueprint-bg">
   <div class="shell">
     <nav>
       <div class="brand">
@@ -38,6 +38,7 @@
         <span id="bridge-badge" class="bridge-badge sim">CLOUD RUNNER SIM</span>
         <input id="bridge-url" class="input-mono" type="text" value="http://127.0.0.1:4195" aria-label="Local Bridge URL">
         <button id="btn-reconnect" class="btn" type="button">Connect Bridge</button>
+        <button id="btn-bp-bg" class="btn" type="button">Blueprint BG</button>
         <button id="btn-crt" class="btn" type="button">CRT Scanlines</button>
       </div>
     </section>
@@ -49,6 +50,7 @@
       <button class="tab-btn" type="button" data-tab="vpn">Global VPN &amp; NASA Push</button>
       <button class="tab-btn" type="button" data-tab="intercept">Procs, Tabs &amp; Intercept</button>
       <button class="tab-btn" type="button" data-tab="checklist">Activity Checklist</button>
+      <button class="tab-btn" type="button" data-tab="blueprints">Moonbase Blueprints</button>
       <button class="tab-btn" type="button" data-tab="swarm">Swarm CMD &amp; Runner</button>
     </div>
 
@@ -237,7 +239,43 @@
       </div>
     </section>
 
-    <!-- TAB 7: SWARM CMD & CLOUD RUNNER -->
+    <!-- TAB 7: MOONBASE TECHNICAL BLUEPRINTS & BUILD SEQUENCE -->
+    <section id="tab-blueprints" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <span>SYS.09 // @MOONBASE.BOT TECHNICAL BLUEPRINTS &amp; BUILD SEQUENCE</span>
+          <span id="bp-hud-summary" style="color:var(--cyan)">BP-01 // LUNA-HAB-01</span>
+        </div>
+        <div class="toolbar">
+          <div id="bp-selector" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+          <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+            <button id="bp-grid-btn" class="btn-sm active" type="button">GRID</button>
+            <button id="bp-callout-btn" class="btn-sm active" type="button">CALLOUTS</button>
+            <button id="bp-set-bg" class="btn-sm btn-forcepush" type="button">Set as Page BG</button>
+            <button id="bp-reset-bg" class="btn-sm" type="button">Reset Default BG</button>
+            <button id="bp-export-png" class="btn-sm" type="button">EXPORT PNG</button>
+            <button id="bp-export-json" class="btn-sm" type="button">EXPORT JSON</button>
+          </span>
+        </div>
+        <div class="toolbar">
+          <strong style="font-family:monospace;font-size:0.76rem;color:var(--amber)">BUILD SEQUENCE:</strong>
+          <button id="bp-prev" class="btn-sm" type="button">Prev Step</button>
+          <button id="bp-play" class="btn-sm" type="button">Play Sequence</button>
+          <button id="bp-next" class="btn-sm btn-forcepush" type="button">Next Step</button>
+          <button id="bp-all" class="btn-sm" type="button">Highlight All</button>
+        </div>
+        <div id="bp-step-banner" class="bp-step-banner">Step 01 // Solar Array Power Bus</div>
+        <div class="grid-2">
+          <canvas id="bp-canvas" class="viewport" width="780" height="420"></canvas>
+          <div>
+            <div id="bp-sidebar" class="matrix-grid" style="grid-template-columns:1fr"></div>
+            <div id="bp-seq-list" class="bp-seq-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 8: SWARM CMD & CLOUD RUNNER -->
     <section id="tab-swarm" class="tab-pane">
       <div class="grid-2">
         <div class="card">

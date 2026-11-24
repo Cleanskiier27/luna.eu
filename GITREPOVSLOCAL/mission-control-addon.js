@@ -48,6 +48,74 @@
     { id: "sync", label: "Review Branch Sync (addon/mission-control-satgpu & DATACENTRAL)", done: true, detail: "Synced on GitHub", status: "PASS" },
   ];
 
+  const BLUEPRINTS_FALLBACK = [
+    {
+      id: "BP-01",
+      code: "LUNA-HAB-01",
+      title: "Lunar Habitat & Command Dome",
+      category: "SURFACE ARCHITECTURE",
+      dimensions: "54.0 m span x 25.0 m elevation",
+      power_kw: 185,
+      mass_tons: 42.6,
+      summary: "Regolith-shielded geodesic command dome assembled in 5 highlighted stages from solar bus to orbital DSN lock.",
+      build_sequence: [
+        { step: 1, code: "01", feature: "Solar Array Power Bus", explanation: "Deploy dual photovoltaic wings (185 kW) and anchor power bus into lunar regolith before pressurizing habitat modules.", hx: 44, hy: 226, hw: 146, hh: 72 },
+        { step: 2, code: "02", feature: "EVA Airlock & Dust Seal", explanation: "Mate pressurized airlock tunnel and electrostatic dust shield onto the primary pad foundation.", hx: 190, hy: 244, hw: 84, hh: 56 },
+        { step: 3, code: "03", feature: "Geodesic Command Dome", explanation: "Erect and inflate the 54 m regolith-shielded geodesic command dome housing MOCR workstations.", hx: 274, hy: 162, hw: 228, hh: 138 },
+        { step: 4, code: "04", feature: "Optical Comms Mast", explanation: "Raise the 25 m laser optical mast to establish line-of-sight telemetry with orbital SatGPU nodes.", hx: 506, hy: 152, hw: 58, hh: 146 },
+        { step: 5, code: "05", feature: "SatGPU & NASA DSN Lock", explanation: "Synchronize surface mast with overhead SatGPU compute ring and NASA DSN Force-Push carrier.", hx: 578, hy: 54, hw: 156, hh: 88 },
+      ],
+    },
+    {
+      id: "BP-02",
+      code: "SATGPU-RING-02",
+      title: "SatGPU Orbital Compute Ring",
+      category: "ORBITAL COMPUTE",
+      dimensions: "14.8 m truss x 4.2 m bus",
+      power_kw: 92,
+      mass_tons: 6.4,
+      summary: "Radiation-hardened H100/B200 orbital compute ring featuring nadir multi-spectral camera gimbal and cryo radiator fins.",
+      build_sequence: [
+        { step: 1, code: "01", feature: "Orbital Truss Backbone", explanation: "Deploy primary 14.8 m carbon-composite truss spine in LEO/Lunar relay inclination.", hx: 210, hy: 160, hw: 360, hh: 80 },
+        { step: 2, code: "02", feature: "Tensor Compute Core", explanation: "Dock radiation-hardened H100-ORBIT / B200-RAD tensor modules onto central bus bay.", hx: 320, hy: 152, hw: 140, hh: 96 },
+        { step: 3, code: "03", feature: "Cryo Radiator & Solar Fins", explanation: "Unfurl dual-loop thermal radiators and 92 kW photovoltaic wings for continuous GPU cooling.", hx: 92, hy: 170, hw: 596, hh: 60 },
+        { step: 4, code: "04", feature: "Nadir Camera & Phased Array", explanation: "Calibrate 4-band optical/IR/SAR camera gimbal and Ka/X-band downlink array.", hx: 334, hy: 248, hw: 112, hh: 110 },
+      ],
+    },
+    {
+      id: "BP-03",
+      code: "NASA-DSN-PUSH-03",
+      title: "NASA DSN Force-Push Relay Mesh",
+      category: "DEEP SPACE NETWORK",
+      dimensions: "384,400 km Earth-Moon Span",
+      power_kw: 120,
+      mass_tons: 3.8,
+      summary: "Earth DSN ground anchors (Goldstone, Madrid, Canberra, Goddard) routing Force-Push bursts via Lunar Halo Relay to public VPN nodes.",
+      build_sequence: [
+        { step: 1, code: "01", feature: "Earth DSN Ground Anchors", explanation: "Lock Goldstone, Madrid, Canberra, and Goddard stations onto synchronized mission time.", hx: 66, hy: 130, hw: 168, hh: 160 },
+        { step: 2, code: "02", feature: "Ka/S/X Carrier Uplink", explanation: "Establish multi-band encrypted Force-Push uplink corridor toward lunar halo orbit.", hx: 236, hy: 116, hw: 160, hh: 180 },
+        { step: 3, code: "03", feature: "Lunar Halo Optical Relay", explanation: "Bridge Earth RF uplink to high-throughput optical relay orbiting Moonbase Dome.", hx: 396, hy: 140, hw: 136, hh: 130 },
+        { step: 4, code: "04", feature: "VPN Grid Telemetry Fan-Out", explanation: "Broadcast Force-Push telemetry bursts across 38 public VPN nodes with live ACK tracking.", hx: 540, hy: 116, hw: 170, hh: 180 },
+      ],
+    },
+    {
+      id: "BP-04",
+      code: "NEURAL-THOUGHT-04",
+      title: "Neural Stream-of-Thought Core",
+      category: "COGNITIVE TELEMETRY",
+      dimensions: "4-7-9-7-3 Lattice",
+      power_kw: 14,
+      mass_tons: 0.9,
+      summary: "Live feed-forward neural lattice synthesizing CPU, RAM, Network, and Disk telemetry into SENSE -> CONTEXT -> DECIDE thought traces.",
+      build_sequence: [
+        { step: 1, code: "01", feature: "4-Channel Sensor Bus", explanation: "Ingest normalized CPU, RAM, Network I/O, and Disk metrics from the cached bridge.", hx: 64, hy: 130, hw: 140, hh: 160 },
+        { step: 2, code: "02", feature: "Hidden Lattice [7-9-7]", explanation: "Propagate activations across encoding, context, and decision layers to locate peak neuron.", hx: 224, hy: 100, hw: 220, hh: 210 },
+        { step: 3, code: "03", feature: "Stream of Thought Emitter", explanation: "Translate peak hidden activations into human-readable SENSE -> CONTEXT -> DECIDE traces.", hx: 454, hy: 118, hw: 134, hh: 174 },
+        { step: 4, code: "04", feature: "Checklist & Swarm Actuator", explanation: "Drive Activity Checklist readiness checks and interactive Swarm CMD / prompt steering.", hx: 594, hy: 130, hw: 132, hh: 156 },
+      ],
+    },
+  ];
+
   const state = {
     cpu: 24,
     ram: 48,
@@ -78,6 +146,13 @@
     tabs: [],
     conns: [],
     checklist: loadChecklist(),
+    blueprints: BLUEPRINTS_FALLBACK,
+    bpIdx: 0,
+    bpStep: 0,
+    bpPlay: false,
+    bpGrid: true,
+    bpCallouts: true,
+    bpShowAll: false,
     fpv: { x: 0, y: 0, z: -8, yaw: 0, pitch: 0, thrust: 0.03, orbit: true, angle: 0, dragging: false, lx: 0, ly: 0 },
   };
 
@@ -116,6 +191,7 @@
   });
 
   $("btn-crt").addEventListener("click", () => document.body.classList.toggle("crt-scanlines"));
+  $("btn-bp-bg").addEventListener("click", () => document.body.classList.toggle("blueprint-bg"));
   $("btn-reconnect").addEventListener("click", () => {
     bridgeUrl = bridgeInput.value.trim().replace(/\/+$/, "") || DEFAULT_BRIDGE;
     localStorage.setItem("mocr_bridge_url", bridgeUrl);
@@ -972,6 +1048,301 @@
     renderDomTelemetry();
   });
 
+  // ── Moonbase Blueprints & Build Sequence ──
+  async function loadBlueprints() {
+    const res = await fetchJson("/api/blueprints");
+    if (res && Array.isArray(res.blueprints) && res.blueprints.length) {
+      state.blueprints = res.blueprints;
+      initBlueprintControls();
+      renderBlueprintSidebar();
+    }
+  }
+
+  function initBlueprintControls() {
+    const wrap = $("bp-selector");
+    if (!wrap) return;
+    wrap.innerHTML = state.blueprints.map((b, idx) =>
+      `<button class="btn-sm ${idx === state.bpIdx ? "active" : ""}" type="button" data-bp-idx="${idx}">${esc(b.id)} // ${esc(b.code)}</button>`
+    ).join("");
+    wrap.querySelectorAll("button").forEach((b) => {
+      b.addEventListener("click", () => {
+        state.bpIdx = Number(b.dataset.bpIdx);
+        state.bpStep = 0;
+        state.bpShowAll = false;
+        wrap.querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b));
+        renderBlueprintSidebar();
+        const cur = state.blueprints[state.bpIdx];
+        pushThought("CONTEXT", "SATGPU", `Loaded blueprint ${cur.id} (${cur.title}) build sequence.`);
+      });
+    });
+  }
+
+  function renderBlueprintSidebar() {
+    const bp = state.blueprints[state.bpIdx] || BLUEPRINTS_FALLBACK[0];
+    const seq = bp.build_sequence || [];
+    if (state.bpStep >= seq.length) state.bpStep = 0;
+    const activeStep = seq[state.bpStep] || { code: "01", feature: bp.title, explanation: bp.summary };
+
+    $("bp-hud-summary").textContent = `${bp.id} // ${bp.code}`;
+    $("bp-step-banner").textContent = state.bpShowAll
+      ? `ALL ${seq.length} BUILD SEQUENCE FEATURES HIGHLIGHTED // ${bp.title}`
+      : `Step ${activeStep.code} // ${activeStep.feature}: ${activeStep.explanation}`;
+
+    $("bp-sidebar").innerHTML = [
+      ["CATEGORY", bp.category, "#00e5ff"],
+      ["DIMENSIONS", bp.dimensions, "#ffb800"],
+      ["POWER / MASS", `${bp.power_kw} kW / ${bp.mass_tons} t`, "#00ff66"],
+    ].map(([k, v, c]) =>
+      `<div class="matrix-cell"><span>${esc(k)}</span><strong style="color:${c}">${esc(v)}</strong></div>`
+    ).join("");
+
+    $("bp-seq-list").innerHTML = seq.map((st, idx) => {
+      const isAct = state.bpShowAll || idx === state.bpStep;
+      const isDone = !state.bpShowAll && idx < state.bpStep;
+      return `<button type="button" class="bp-step-card ${isAct ? "active" : ""} ${isDone ? "done" : ""}" data-bp-step="${idx}">` +
+        `<span class="bp-step-num">${esc(st.code)}</span>` +
+        `<div><strong style="color:${isAct ? "#ffb800" : "#e6edf3"}">${esc(st.feature)}</strong>` +
+        `<div style="color:#98a2be;margin-top:2px">${esc(st.explanation)}</div></div></button>`;
+    }).join("");
+
+    $("bp-seq-list").querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.bpShowAll = false;
+        state.bpStep = Number(btn.dataset.bpStep);
+        renderBlueprintSidebar();
+      });
+    });
+  }
+
+  $("bp-grid-btn").addEventListener("click", () => {
+    state.bpGrid = !state.bpGrid;
+    $("bp-grid-btn").classList.toggle("active", state.bpGrid);
+  });
+  $("bp-callout-btn").addEventListener("click", () => {
+    state.bpCallouts = !state.bpCallouts;
+    $("bp-callout-btn").classList.toggle("active", state.bpCallouts);
+  });
+  $("bp-prev").addEventListener("click", () => {
+    const seq = (state.blueprints[state.bpIdx] || BLUEPRINTS_FALLBACK[0]).build_sequence || [];
+    state.bpShowAll = false;
+    state.bpStep = (state.bpStep - 1 + seq.length) % Math.max(1, seq.length);
+    renderBlueprintSidebar();
+  });
+  $("bp-next").addEventListener("click", () => {
+    const seq = (state.blueprints[state.bpIdx] || BLUEPRINTS_FALLBACK[0]).build_sequence || [];
+    state.bpShowAll = false;
+    state.bpStep = (state.bpStep + 1) % Math.max(1, seq.length);
+    renderBlueprintSidebar();
+  });
+  $("bp-all").addEventListener("click", () => {
+    state.bpShowAll = !state.bpShowAll;
+    $("bp-all").classList.toggle("active", state.bpShowAll);
+    renderBlueprintSidebar();
+  });
+  $("bp-play").addEventListener("click", () => {
+    state.bpPlay = !state.bpPlay;
+    $("bp-play").textContent = state.bpPlay ? "Pause Sequence" : "Play Sequence";
+    $("bp-play").classList.toggle("active", state.bpPlay);
+  });
+  setInterval(() => {
+    if (state.bpPlay && activeTab === "blueprints") {
+      const seq = (state.blueprints[state.bpIdx] || BLUEPRINTS_FALLBACK[0]).build_sequence || [];
+      state.bpShowAll = false;
+      state.bpStep = (state.bpStep + 1) % Math.max(1, seq.length);
+      renderBlueprintSidebar();
+    }
+  }, 2500);
+
+  $("bp-set-bg").addEventListener("click", () => {
+    drawBlueprint();
+    const url = $("bp-canvas").toDataURL("image/png");
+    document.documentElement.style.setProperty("--bp-bg-image", `url("${url}")`);
+    document.body.classList.add("blueprint-bg");
+    appendTerm(`[BLUEPRINTS] Applied ${state.blueprints[state.bpIdx].id} schematic as page background.`);
+  });
+  $("bp-reset-bg").addEventListener("click", () => {
+    document.documentElement.style.setProperty("--bp-bg-image", 'url("moonbase-blueprint-bg.svg")');
+    document.body.classList.add("blueprint-bg");
+    appendTerm("[BLUEPRINTS] Restored default moonbase-blueprint-bg.svg page background.");
+  });
+  $("bp-export-png").addEventListener("click", () => {
+    drawBlueprint();
+    const a = document.createElement("a");
+    a.download = `${state.blueprints[state.bpIdx].id.toLowerCase()}-blueprint.png`;
+    a.href = $("bp-canvas").toDataURL("image/png");
+    a.click();
+  });
+  $("bp-export-json").addEventListener("click", () => {
+    const bp = state.blueprints[state.bpIdx];
+    const blob = new Blob([JSON.stringify(bp, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.download = `${bp.id.toLowerCase()}-blueprint.json`;
+    a.href = URL.createObjectURL(blob);
+    a.click();
+  });
+
+  function drawBlueprint() {
+    const cv = $("bp-canvas");
+    if (!cv) return;
+    const ctx = cv.getContext("2d");
+    const W = cv.width, H = cv.height;
+    const bp = state.blueprints[state.bpIdx] || BLUEPRINTS_FALLBACK[0];
+
+    ctx.fillStyle = "#040d1d";
+    ctx.fillRect(0, 0, W, H);
+
+    if (state.bpGrid) {
+      ctx.strokeStyle = "#0d2547";
+      ctx.lineWidth = 0.7;
+      for (let x = 0; x <= W; x += 24) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 0; y <= H; y += 24) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      ctx.strokeStyle = "#163c6e";
+      ctx.lineWidth = 1.1;
+      for (let x = 0; x <= W; x += 120) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 0; y <= H; y += 120) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+    }
+
+    ctx.strokeStyle = "#22528f";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(12, 12, W - 24, H - 24);
+
+    // Schematic geometry by blueprint ID
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.8;
+    if (bp.id === "BP-01") {
+      // Surface datum + dome + solar + airlock + mast + SatGPU
+      ctx.beginPath(); ctx.moveTo(36, 298); ctx.lineTo(744, 298); ctx.stroke();
+      ctx.fillStyle = "rgba(7, 27, 54, 0.7)";
+      ctx.fillRect(54, 240, 124, 34); ctx.strokeRect(54, 240, 124, 34);
+      ctx.beginPath(); ctx.moveTo(116, 274); ctx.lineTo(116, 298); ctx.stroke();
+      ctx.fillRect(198, 254, 68, 44); ctx.strokeRect(198, 254, 68, 44);
+      ctx.beginPath(); ctx.arc(388, 298, 108, Math.PI, 0); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(388, 190); ctx.lineTo(388, 298); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(535, 298); ctx.lineTo(535, 168); ctx.stroke();
+      ctx.beginPath(); ctx.arc(535, 164, 14, Math.PI * 0.15, Math.PI * 0.85, true); ctx.stroke();
+      ctx.strokeStyle = "#ffb800";
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath(); ctx.moveTo(535, 154); ctx.lineTo(656, 94); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = "#00e5ff";
+      ctx.strokeRect(634, 78, 44, 26);
+      ctx.strokeRect(592, 84, 38, 14);
+      ctx.strokeRect(682, 84, 38, 14);
+    } else if (bp.id === "BP-02") {
+      ctx.strokeRect(220, 186, 340, 28);
+      ctx.fillStyle = "rgba(7, 27, 54, 0.75)";
+      ctx.fillRect(334, 160, 112, 80); ctx.strokeRect(334, 160, 112, 80);
+      ctx.strokeRect(102, 178, 112, 44);
+      ctx.strokeRect(566, 178, 112, 44);
+      ctx.beginPath(); ctx.arc(390, 262, 16, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(380, 276); ctx.lineTo(342, 346); ctx.lineTo(438, 346); ctx.lineTo(400, 276); ctx.stroke();
+      ctx.setLineDash([]);
+    } else if (bp.id === "BP-03") {
+      [154, 210, 266].forEach((y, i) => {
+        ctx.strokeStyle = "#ffb800";
+        ctx.strokeRect(84, y - 16, 130, 32);
+        ctx.fillStyle = "#ffb800";
+        ctx.font = "11px Courier New";
+        ctx.fillText(["NASA-GDSCC", "NASA-MDSCC", "NASA-GSFC"][i], 96, y + 4);
+      });
+      ctx.strokeStyle = "#00e5ff";
+      ctx.beginPath(); ctx.arc(464, 206, 44, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = "#00e5ff"; ctx.fillText("LUNA RELAY", 430, 210);
+      ctx.strokeStyle = "#ffb800";
+      ctx.setLineDash([6, 4]);
+      [154, 210, 266].forEach((y) => { ctx.beginPath(); ctx.moveTo(214, y); ctx.lineTo(420, 206); ctx.stroke(); });
+      ctx.setLineDash([]);
+      [140, 206, 272].forEach((y, i) => {
+        ctx.strokeStyle = "#00ff66";
+        ctx.beginPath(); ctx.moveTo(508, 206); ctx.lineTo(580, y); ctx.stroke();
+        ctx.strokeRect(580, y - 16, 116, 32);
+        ctx.fillStyle = "#00ff66";
+        ctx.fillText(["US / EU VPN", "ASIA VPN", "GLOBAL 38+"][i], 592, y + 4);
+      });
+    } else {
+      const blocks = [
+        [78, "SENSOR BUS", "CPU/RAM/NET/DSK", "#ffb800"],
+        [254, "LATTICE", "H1[7] H2[9] H3[7]", "#c084fc"],
+        [462, "THOUGHT", "SENSE->CTX->DEC", "#00e5ff"],
+        [604, "ACTUATOR", "CHECKLIST / BOT", "#00ff66"],
+      ];
+      blocks.forEach(([x, t, s, col], i) => {
+        ctx.strokeStyle = col;
+        ctx.strokeRect(x, 152, 120, 108);
+        ctx.fillStyle = col;
+        ctx.font = "bold 11px Courier New";
+        ctx.fillText(t, x + 12, 194);
+        ctx.fillStyle = "#98a2be";
+        ctx.font = "10px Courier New";
+        ctx.fillText(s, x + 10, 218);
+        if (i < blocks.length - 1) {
+          ctx.strokeStyle = "#38bdf8";
+          ctx.beginPath(); ctx.moveTo(x + 120, 206); ctx.lineTo(blocks[i + 1][0], 206); ctx.stroke();
+        }
+      });
+    }
+
+    // Highlighted Build-Sequence Bounding Boxes & Numbered Badges
+    const seq = bp.build_sequence || [];
+    const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.006);
+    seq.forEach((st, idx) => {
+      const isAct = state.bpShowAll || idx === state.bpStep;
+      const isDone = !state.bpShowAll && idx < state.bpStep;
+      if (isAct || isDone || state.bpCallouts) {
+        ctx.save();
+        if (isAct) {
+          ctx.strokeStyle = `rgba(255, 184, 0, ${(0.55 + pulse * 0.45).toFixed(2)})`;
+          ctx.fillStyle = `rgba(255, 184, 0, ${(0.08 + pulse * 0.1).toFixed(2)})`;
+          ctx.lineWidth = 2.2;
+        } else if (isDone) {
+          ctx.strokeStyle = "rgba(0, 255, 102, 0.55)";
+          ctx.fillStyle = "rgba(0, 255, 102, 0.05)";
+          ctx.lineWidth = 1.2;
+        } else {
+          ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+          ctx.fillStyle = "transparent";
+          ctx.lineWidth = 1;
+        }
+        ctx.setLineDash(isAct ? [6, 4] : [3, 4]);
+        ctx.fillRect(st.hx, st.hy, st.hw, st.hh);
+        ctx.strokeRect(st.hx, st.hy, st.hw, st.hh);
+        ctx.restore();
+      }
+      if (state.bpCallouts) {
+        const bx = st.hx + 12;
+        const by = Math.max(46, st.hy - 12);
+        ctx.fillStyle = isAct ? "#ffb800" : isDone ? "#00ff66" : "#08142b";
+        ctx.strokeStyle = isAct ? "#ffffff" : isDone ? "#00ff66" : "#38bdf8";
+        ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.arc(bx, by, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = (isAct || isDone) ? "#040d1d" : "#7ec4ff";
+        ctx.font = "bold 10px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillText(st.code, bx, by + 3.5);
+        if (isAct) {
+          ctx.textAlign = "left";
+          ctx.fillStyle = "#ffd970";
+          ctx.fillText(st.feature.toUpperCase(), bx + 16, by + 3.5);
+        }
+        ctx.textAlign = "left";
+      }
+    });
+
+    // Engineering Title Block
+    ctx.fillStyle = "rgba(4, 16, 36, 0.9)";
+    ctx.fillRect(W - 294, H - 64, 272, 42);
+    ctx.strokeStyle = "#22528f";
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(W - 294, H - 64, 272, 42);
+    ctx.fillStyle = "#ffb800";
+    ctx.font = "bold 11px Courier New";
+    ctx.fillText(`@MOONBASE.BOT // ${bp.id}`, W - 284, H - 46);
+    ctx.fillStyle = "#00ff66";
+    ctx.font = "10px Courier New";
+    ctx.fillText("OWNER: ANDREW T MIDDLETON", W - 284, H - 30);
+  }
+
   // ── Swarm Terminal ──
   function appendTerm(text) {
     const out = $("swarm-out");
@@ -986,7 +1357,10 @@
     const low = cmd.toLowerCase();
     if (low === "clear") { $("swarm-out").textContent = ""; return; }
     if (low === "help") {
-      appendTerm("Commands: help | status | satgpu | fpv | vpn | forcepush | checklist | thought <msg> | bridge | networkbuster | clear");
+      appendTerm("Commands: help | status | satgpu | fpv | vpn | forcepush | checklist | blueprints | thought <msg> | bridge | networkbuster | clear");
+    } else if (low === "blueprints") {
+      const bp = state.blueprints[state.bpIdx] || BLUEPRINTS_FALLBACK[0];
+      appendTerm(`[BLUEPRINTS] Active: ${bp.id} (${bp.title}) | ${bp.build_sequence.length} build steps`);
     } else if (low === "status") {
       appendTerm(`[MOCR] CPU ${state.cpu.toFixed(1)}% | RAM ${state.ram.toFixed(1)}% | Bridge: ${bridgeOnline ? "LIVE" : "SIM"}`);
     } else if (low === "satgpu") {
@@ -1021,6 +1395,9 @@
   // ── Boot & Animation Loop ──
   initSatControls();
   renderSatSidebar();
+  initBlueprintControls();
+  renderBlueprintSidebar();
+  loadBlueprints();
   renderChecklist();
   pushThought("SENSE", "TELEMETRY", "Neural Stream of Thought initialized [4-7-9-7-3].");
   pushThought("CONTEXT", "VPN", "NASA DSN Force Push channel armed (4 relay stations).");
@@ -1034,6 +1411,7 @@
     if (activeTab === "satgpu") { drawSatCam(); }
     if (activeTab === "fpv") { drawFPV(); }
     if (activeTab === "vpn") { drawVPN(); }
+    if (activeTab === "blueprints") { drawBlueprint(); }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
