@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LunaRecycle &amp; NetworkBuster-Cloud Mission Control Addon: Neural Stream of Thought, Activity Checklist, NASA Force Push VPN Channel, SatGPU Onboard Camera, FPV 3D, and Swarm CMD.">
+  <meta name="author" content="Andrew t Middleton">
+  <title>LunaRecycle — Mission Control &amp; SatGPU Addon</title>
+  <link rel="stylesheet" href="mission-control-addon.css">
+</head>
+<body class="crt-scanlines blueprint-bg">
+  <div class="shell">
+    <nav>
+      <div class="brand">
+        <span>LunaRecycle</span>
+        <span class="brand-tag">MOCR // NETWORKBUSTER-CLOUD</span>
+      </div>
+      <div class="navlinks">
+        <a class="pill" href="index.html">Home</a>
+        <a class="pill" href="directory.html">Apps and guides</a>
+        <a class="pill" href="launch.html">Launch</a>
+        <a class="pill" href="rocket-launch.html">Rocket launch sim</a>
+        <a class="pill" href="simulation3d.html">3D simulation</a>
+        <a class="pill" href="admin.html">Admin</a>
+      </div>
+    </nav>
+
+    <h1 class="mocr-title">Mission Control &amp; SatGPU Console</h1>
+
+    <section class="mocr-bar" aria-label="Mission Control Status">
+      <div class="mocr-clocks">
+        <span class="clock-chip"><strong>SYS</strong><span id="mocr-status-text">NOMINAL</span></span>
+        <span class="clock-chip"><strong>MET</strong><span id="mocr-met">000:00:00:00</span></span>
+        <span class="clock-chip"><strong>UTC</strong><span id="mocr-utc">00:00:00</span></span>
+        <span class="clock-chip"><strong>CHK</strong><span id="mocr-checklist-chip">0/8</span></span>
+      </div>
+      <div class="bridge-controls">
+        <span id="bridge-badge" class="bridge-badge sim">CLOUD RUNNER SIM</span>
+        <input id="bridge-url" class="input-mono" type="text" value="http://127.0.0.1:4195" aria-label="Local Bridge URL">
+        <button id="btn-reconnect" class="btn" type="button">Connect Bridge</button>
+        <button id="btn-bp-bg" class="btn" type="button">Blueprint BG</button>
+        <button id="btn-crt" class="btn" type="button">CRT Scanlines</button>
+      </div>
+    </section>
+
+    <div class="tab-strip" role="tablist" aria-label="Mission Control Modules">
+      <button class="tab-btn active" type="button" data-tab="overview">Neural &amp; Thought Stream</button>
+      <button class="tab-btn" type="button" data-tab="satgpu">SatGPU Onboard Camera</button>
+      <button class="tab-btn" type="button" data-tab="fpv">FPV 3D Drive</button>
+      <button class="tab-btn" type="button" data-tab="vpn">Global VPN &amp; NASA Push</button>
+      <button class="tab-btn" type="button" data-tab="intercept">Procs, Tabs &amp; Intercept</button>
+      <button class="tab-btn" type="button" data-tab="checklist">Activity Checklist</button>
+      <button class="tab-btn" type="button" data-tab="blueprints">Moonbase Blueprints</button>
+      <button class="tab-btn" type="button" data-tab="swarm">Swarm CMD &amp; Runner</button>
+    </div>
+
+    <!-- TAB 1: OVERVIEW, NEURAL NET & STREAM OF THOUGHT -->
+    <section id="tab-overview" class="tab-pane active">
+      <div class="kpi-row">
+        <div class="card"><div class="kpi-label">CPU TELEMETRY</div><div id="kpi-cpu" class="kpi-val" style="color:var(--amber)">0.0%</div></div>
+        <div class="card"><div class="kpi-label">MEMORY BUS</div><div id="kpi-ram" class="kpi-val" style="color:var(--green)">0.0%</div></div>
+        <div class="card"><div class="kpi-label">DISK STORAGE</div><div id="kpi-disk" class="kpi-val" style="color:var(--amber)">0.0%</div></div>
+        <div class="card"><div class="kpi-label">NETWORK UPLINK</div><div id="kpi-net" class="kpi-val" style="color:var(--cyan)">0 B/s</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span>SYS.01 // DATA NEURAL NETWORK [4-7-9-7-3]</span>
+            <span id="nn-outputs" style="color:var(--green)">LOAD 0.00 | EFF 0.00 | ALT 0.00</span>
+          </div>
+          <canvas id="nn-canvas" class="viewport" width="640" height="310"></canvas>
+
+          <div class="card-header" style="margin-top:12px">
+            <span>SYS.01B // NEURAL STREAM OF THOUGHT</span>
+            <span id="thought-focus-label" style="color:var(--cyan)">FOCUS: ALL</span>
+          </div>
+          <div class="toolbar">
+            <button id="thought-toggle" class="btn-sm" type="button">Pause Stream</button>
+            <button class="btn-sm active" type="button" data-thought-focus="ALL">ALL</button>
+            <button class="btn-sm" type="button" data-thought-focus="TELEMETRY">TELEMETRY</button>
+            <button class="btn-sm" type="button" data-thought-focus="SATGPU">SATGPU</button>
+            <button class="btn-sm" type="button" data-thought-focus="VPN">VPN</button>
+          </div>
+          <div id="nn-thought-stream" class="thought-stream" aria-live="polite"></div>
+          <div class="terminal-in-row">
+            <input id="thought-input" class="input-mono" style="flex:1" type="text" placeholder="Steer neural thought stream (e.g. assess satgpu, vpn latency, checklist)...">
+            <button id="thought-inject" class="btn" type="button">Inject Prompt</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span>SYS.02 // ROLLING TELEMETRY &amp; SUBSYSTEMS</span>
+          </div>
+          <canvas id="telem-canvas" class="viewport" width="480" height="190"></canvas>
+          <div id="subsystem-matrix" class="matrix-grid" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: SATGPU ONBOARD CAMERA -->
+    <section id="tab-satgpu" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <span>SYS.03 // SATGPU ORBITAL NODES &amp; ONBOARD CAMERA MOD</span>
+          <span id="sat-hud-summary" style="color:var(--cyan)">SATGPU-ALPHA // OPTICAL</span>
+        </div>
+        <div class="toolbar">
+          <div id="sat-node-btns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+          <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn-sm active" type="button" data-sat-mode="OPTICAL">OPTICAL</button>
+            <button class="btn-sm" type="button" data-sat-mode="THERMAL IR">THERMAL IR</button>
+            <button class="btn-sm" type="button" data-sat-mode="SAR RADAR">SAR RADAR</button>
+            <button class="btn-sm" type="button" data-sat-mode="NIGHT VIS">NIGHT VIS</button>
+            <button id="sat-zoom-in" class="btn-sm" type="button">ZOOM +</button>
+            <button id="sat-zoom-out" class="btn-sm" type="button">ZOOM -</button>
+            <button id="sat-snap" class="btn-sm" type="button">SNAPSHOT</button>
+          </span>
+        </div>
+        <div class="grid-2">
+          <canvas id="sat-canvas" class="viewport" width="760" height="380"></canvas>
+          <div id="sat-sidebar" class="grid-3" style="grid-template-columns:1fr;align-content:start"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: FPV 3D DRIVE -->
+    <section id="tab-fpv" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <span>SYS.04 // FPV 3D NEURAL SPACE DRIVE</span>
+          <span style="color:var(--muted)">Drag to steer | Wheel for thrust</span>
+        </div>
+        <div class="toolbar">
+          <button id="fpv-orbit" class="btn-sm" type="button">AUTO-ORBIT</button>
+          <button id="fpv-boost" class="btn-sm" type="button">BOOST</button>
+          <button id="fpv-slow" class="btn-sm" type="button">SLOW</button>
+          <button id="fpv-rev" class="btn-sm" type="button">REVERSE</button>
+          <button id="fpv-reset" class="btn-sm" type="button">RESET CAM</button>
+        </div>
+        <canvas id="fpv-canvas" class="viewport" width="1120" height="410"></canvas>
+      </div>
+    </section>
+
+    <!-- TAB 4: GLOBAL VPN GRID + NASA FORCE PUSH CHANNEL -->
+    <section id="tab-vpn" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <span>SYS.05 // GLOBAL PUBLIC VPN GRID &amp; NASA FORCE PUSH CHANNEL</span>
+          <span id="vpn-selected-info" style="color:var(--green)">Click any node to inspect latency &amp; routing arcs</span>
+        </div>
+
+        <div class="vpn-push-bar">
+          <strong style="color:var(--amber)">NASA VPN CHANNEL:</strong>
+          <select id="vpn-channel-select" class="select-mono" aria-label="NASA VPN Channel">
+            <option value="DSN-ALPHA (Ka-Band)">DSN-ALPHA (Ka-Band)</option>
+            <option value="MOCR-FORCE-PUSH (S-Band)">MOCR-FORCE-PUSH (S-Band)</option>
+            <option value="LUNA-RELAY (Optical)">LUNA-RELAY (Optical)</option>
+            <option value="SATGPU-SYNC (X-Band)">SATGPU-SYNC (X-Band)</option>
+          </select>
+          <button id="vpn-force-push" class="btn-sm btn-forcepush" type="button">🚀 FORCE PUSH BURST</button>
+          <button id="vpn-auto-push" class="btn-sm" type="button">Auto-Pulse: OFF</button>
+          <span id="vpn-push-stats" style="margin-left:auto;color:var(--cyan)">FRAMES: 0 | RELAYS: 4 | ACK: -- ms</span>
+        </div>
+
+        <div class="toolbar" id="vpn-region-bar">
+          <button class="btn-sm active" type="button" data-region="ALL">ALL</button>
+          <button class="btn-sm" type="button" data-region="ASIA">ASIA</button>
+          <button class="btn-sm" type="button" data-region="EUROPE">EUROPE</button>
+          <button class="btn-sm" type="button" data-region="AMERICAS">AMERICAS</button>
+          <button class="btn-sm" type="button" data-region="OCEANIA">OCEANIA</button>
+          <button class="btn-sm" type="button" data-region="AFRICA">AFRICA</button>
+          <button class="btn-sm" type="button" data-region="MIDEAST">MIDEAST</button>
+        </div>
+        <canvas id="vpn-canvas" class="viewport" width="1120" height="390"></canvas>
+        <div id="vpn-push-log" class="vpn-push-log" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- TAB 5: PROCS, TABS & NET INTERCEPT -->
+    <section id="tab-intercept" class="tab-pane">
+      <div class="toolbar">
+        <input id="table-search" class="input-mono" type="text" placeholder="Filter processes, tabs, or ports...">
+        <span id="bridge-data-note" style="color:var(--muted);font-family:monospace;font-size:0.8rem"></span>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-header"><span>RUNNING PROGRAMS</span><span id="proc-count">0</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PID</th><th>PROGRAM</th><th>CPU%</th><th>RAM</th></tr></thead>
+              <tbody id="proc-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>CURRENT BROWSER TABS</span><span id="tab-count">0</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>AGENT</th><th>WINDOW / TAB TITLE</th><th>PID</th></tr></thead>
+              <tbody id="tabs-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>NET INTERCEPT MATRIX</span><span id="conn-count">0</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PROTO</th><th>REMOTE</th><th>PROC</th><th>THREAT</th></tr></thead>
+              <tbody id="conn-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: MISSION ACTIVITY CHECKLIST -->
+    <section id="tab-checklist" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <span>SYS.07 // MISSION ACTIVITY CHECKLIST</span>
+          <span id="chk-summary" style="color:var(--green)">0 / 8 COMPLETE</span>
+        </div>
+        <div class="toolbar">
+          <button id="chk-run-auto" class="btn-sm btn-forcepush" type="button">Run Live Auto-Check</button>
+          <button id="chk-reset" class="btn-sm" type="button">Reset Checklist</button>
+          <button id="chk-export" class="btn-sm" type="button">Export JSON</button>
+        </div>
+        <div class="checklist-progress">
+          <div class="progress-track"><div id="chk-progress-bar" class="progress-fill"></div></div>
+          <span id="chk-progress-text">0%</span>
+        </div>
+        <div id="checklist-items" class="checklist-list"></div>
+        <div class="terminal-in-row" style="margin-top:12px">
+          <input id="chk-new-input" class="input-mono" style="flex:1" type="text" placeholder="Add custom mission activity task...">
+          <button id="chk-add-btn" class="btn" type="button">Add Item</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: MOONBASE TECHNICAL BLUEPRINTS & BUILD SEQUENCE -->
+    <section id="tab-blueprints" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <span>SYS.09 // @MOONBASE.BOT TECHNICAL BLUEPRINTS &amp; BUILD SEQUENCE</span>
+          <span id="bp-hud-summary" style="color:var(--cyan)">BP-01 // LUNA-HAB-01</span>
+        </div>
+        <div class="toolbar">
+          <div id="bp-selector" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+          <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+            <button id="bp-grid-btn" class="btn-sm active" type="button">GRID</button>
+            <button id="bp-callout-btn" class="btn-sm active" type="button">CALLOUTS</button>
+            <button id="bp-set-bg" class="btn-sm btn-forcepush" type="button">Set as Page BG</button>
+            <button id="bp-reset-bg" class="btn-sm" type="button">Reset Default BG</button>
+            <button id="bp-export-png" class="btn-sm" type="button">EXPORT PNG</button>
+            <button id="bp-export-json" class="btn-sm" type="button">EXPORT JSON</button>
+          </span>
+        </div>
+        <div class="toolbar">
+          <strong style="font-family:monospace;font-size:0.76rem;color:var(--amber)">BUILD SEQUENCE:</strong>
+          <button id="bp-prev" class="btn-sm" type="button">Prev Step</button>
+          <button id="bp-play" class="btn-sm" type="button">Play Sequence</button>
+          <button id="bp-next" class="btn-sm btn-forcepush" type="button">Next Step</button>
+          <button id="bp-all" class="btn-sm" type="button">Highlight All</button>
+        </div>
+        <div id="bp-step-banner" class="bp-step-banner">Step 01 // Solar Array Power Bus</div>
+        <div class="card-header" style="margin-top:8px">
+          <span>WORLD VIEW // REALISTIC ORBIT &rarr; SITE ZOOM (SHACKLETON RIM, LUNAR SOUTH POLE)</span>
+          <a href="moonbase-worldview.html" target="_blank" rel="noopener" style="color:var(--cyan)">OPEN FULLSCREEN</a>
+        </div>
+        <iframe id="bp-worldview" src="moonbase-worldview.html" title="Moonbase world view" style="width:100%;height:460px;border:1px solid #22528f;background:#000;display:block;margin-bottom:10px"></iframe>
+        <div class="grid-2">
+          <canvas id="bp-canvas" class="viewport" width="780" height="420"></canvas>
+          <div>
+            <div id="bp-sidebar" class="matrix-grid" style="grid-template-columns:1fr"></div>
+            <div id="bp-seq-list" class="bp-seq-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 8: SWARM CMD & CLOUD RUNNER -->
+    <section id="tab-swarm" class="tab-pane">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span>SYS.08 // SWARM COMMAND CONSOLE</span>
+            <span style="color:var(--green)">MOCR-BUS READY</span>
+          </div>
+          <div id="swarm-out" class="terminal-out"></div>
+          <div class="terminal-in-row">
+            <span style="font-family:monospace;color:var(--amber)">SWARM@LUNA&gt;</span>
+            <input id="swarm-in" class="input-mono" style="flex:1" type="text" placeholder="Type help, status, satgpu, fpv, vpn, forcepush, checklist, thought <msg>, clear">
+            <button id="swarm-send" class="btn" type="button">Run</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span>NETWORKBUSTER-CLOUD // LOCAL DESKTOP &amp; CLOUD RUNNER</span></div>
+          <p style="color:var(--muted);line-height:1.55;margin-top:0">
+            Run the local Python Desktop App + CORS Bridge on your machine to stream live Windows processes, open browser tabs, and socket telemetry directly into this <strong>luna.eu</strong> webpage, or deploy via Cloud Runner simulation when offline.
+          </p>
+          <div class="code-block">pip install -r requirements.txt
+python addon_server.py
+# Or launch both bridge + Tkinter desktop app:
+powershell -ExecutionPolicy Bypass -File launch_all.ps1</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+            <a class="primary" href="launch.html">Open Luna Launch Hub</a>
+            <a class="pill" href="admin.html">NetworkBuster Admin</a>
+            <a class="pill" href="https://github.com/Cleanskiier27/luna.eu">GitHub Repository</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span>&copy; Andrew t Middleton (cleanskiier27@networkbuster.net) &mdash; LunaRecycle &times; NetworkBuster-Cloud Mission Control Addon v5.0</span>
+      <a href="https://github.com/Cleanskiier27/luna.eu/tree/DATACENTRAL">DATACENTRAL</a>
+    </footer>
+  </div>
+
+  <script src="mission-control-addon.js"></script>
+</body>
+</html>

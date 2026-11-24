@@ -12,6 +12,12 @@
   #ctl button{background:rgba(4,16,36,.8);color:#8eeeff;border:1px solid #2b64a8;padding:5px 9px;font:11px "Courier New",monospace;cursor:pointer}
   #ctl button.on,#ctl button:hover{border-color:#ffb800;color:#ffb800}
   #zoom{position:absolute;left:12px;bottom:12px;width:200px}
+  #spec{display:none;position:absolute;right:10px;top:10px;width:300px;max-height:calc(100% - 200px);overflow:auto;background:rgba(3,16,40,.92);border:1px solid #7fdcff;padding:10px 12px;font-size:11px;box-shadow:0 0 18px rgba(127,220,255,.15)}
+  #spec .st{color:#ffb800;font-weight:bold;margin-bottom:6px;border-bottom:1px solid #22528f;padding-bottom:5px}
+  #spec .sr{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-bottom:1px dotted #183d6b}
+  #spec .sr span{color:#7fb8e6;white-space:nowrap}
+  #spec .sr b{color:#d8f6ff;font-weight:normal;text-align:right}
+  #spec .sn{margin-top:7px;color:#6f8fb0;font-size:10px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -25,7 +31,9 @@
   <button id="b-auto" type="button" class="on">AUTO ZOOM</button>
   <button id="b-labels" type="button" class="on">LABELS</button>
   <button id="b-build" type="button">BUILD SIM</button>
+  <button id="b-bp" type="button">BLUEPRINT</button>
 </div>
+<div id="spec"></div>
 <script>
 (() => {
 "use strict";
@@ -40,7 +48,7 @@ function rng(seed){ let s = seed >>> 0; return () => ((s = (s * 1664525 + 101390
 const SITE = { name: "SHACKLETON RIM // 89.9°S 0.0°E", lat: -89.9, lon: 0 };
 const SUN_DIR = { x: -0.92, y: -0.18 }; // light from the left, grazing
 
-const state = { z: 0, target: 0, auto: true, labels: true, build: false, buildT: 0, t: 0 };
+const state = { z: 0, target: 0, auto: true, labels: true, build: false, buildT: 0, t: 0, bp: false, sel: "hab", lock: false };
 
 // ---------- pre-rendered layers ----------
 let stars, moonTex, terrain;
@@ -255,6 +263,253 @@ function drawEarth(x, y, r){
   ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.beginPath(); ctx.arc(x + r * 0.45, y, r, -Math.PI / 2, Math.PI / 2); ctx.ellipse(x + r * 0.45, y, r * 0.6, r, 0, Math.PI / 2, -Math.PI / 2, true); ctx.fill();
 }
 
+// ---------- engineering blueprint overlay ----------
+// Scene scale: habitat dome outer Ø (0.26 s) = 12.0 m  ->  46 m per scene unit.
+const M_PER_S = 46;
+const toM = (px, s) => px / s * M_PER_S;
+const fm = (px, s) => toM(px, s).toFixed(1) + " m";
+let bpHits = [];
+
+const SPECS = {
+  solar: ["01 · VERTICAL SOLAR ARRAYS (VSA ×4)", [
+    ["Mast height", "7.4 m (tilt-up, regolith-ballasted base)"],
+    ["Panel", "1.6 × 4.6 m, vertical (sun at 1.5° elev.)"],
+    ["Cells", "IMM triple-junction GaAs, 32 % BOL"],
+    ["Output", "≈ 2.4 kWe each · 9.6 kWe total"],
+    ["Tracking", "Single-axis azimuth, 1 rev / 29.5 d"],
+    ["Storage", "150 kWh Li-ion + regenerative fuel cell"],
+    ["Dust", "Electrodynamic dust shield (EDS) film"]]],
+  airlock: ["02 · EVA AIRLOCK / SUITPORT MODULE", [
+    ["Structure", "Al-Li 2195 rigid cylinder, ring-stiffened"],
+    ["Envelope", "Ø 2.1 × 4.6 m"],
+    ["Design ΔP", "70.3 kPa ops · 1.5× proof"],
+    ["Suitports", "2 × rear-entry (dust isolation)"],
+    ["Crew hatch", "1.0 m Ø to habitat tunnel"],
+    ["Depress", "15 min · gas recovery ≥ 90 %"],
+    ["Dust", "Magnetic brush + EDS at threshold"]]],
+  hab: ["03 · HABITAT MODULE — SECTION A-A", [
+    ["Type", "Inflatable core + 3D-printed regolith shield"],
+    ["Outer", "Ø 12.0 m × 4.9 m high"],
+    ["Shield", "Sintered regolith 1.5 m (≈ 2.4 t/m²)"],
+    ["Pressure shell", "Vectran restraint + 4-layer bladder"],
+    ["Atmosphere", "70.3 kPa · 26.5 % O₂ (exploration atm.)"],
+    ["Press. volume", "≈ 143 m³ · 1 deck + utility plenum"],
+    ["Crew", "4 (30-day surface stay)"],
+    ["Radiation", "≈ 50 % GCR dose cut vs. unshielded"],
+    ["Thermal", "MLI + regolith mass, ±1 °C cabin"]]],
+  mast: ["04 · COMMS / NAV MAST", [
+    ["Height", "12.0 m CFRP lattice, guy-free"],
+    ["RF", "Ka-band 0.6 m high-gain antenna"],
+    ["Optical", "10 cm laser terminal, 1.2 Gbps"],
+    ["Earth-direct", "Ka ≈ 100 Mbps"],
+    ["PNT", "LunaNet LANS beacon"],
+    ["Geometry", "Earth elev. 0–6.7° at pole; mast clears rim"]]],
+  uplink: ["05 · RELAY / DSN LINK", [
+    ["Path", "Mast → lunar relay (ELFO) → DSN 34 m BWG"],
+    ["Light time", "1.28 s one-way"],
+    ["Bands", "Ka 26 GHz down · X 7.2 GHz up"],
+    ["Availability", "≥ 95 % (relay + Earth-direct)"]]],
+};
+
+function bpLine(x1, y1, x2, y2){ ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+function bpArrow(p, q){
+  const a = Math.atan2(q.y - p.y, q.x - p.x);
+  ctx.beginPath(); ctx.moveTo(p.x, p.y);
+  ctx.lineTo(p.x + 7 * Math.cos(a + 0.33), p.y + 7 * Math.sin(a + 0.33));
+  ctx.lineTo(p.x + 7 * Math.cos(a - 0.33), p.y + 7 * Math.sin(a - 0.33));
+  ctx.closePath(); ctx.fill();
+}
+// Dimension line between two points, offset perpendicular by `off` px, with extension lines + arrowheads.
+function bpDim(x1, y1, x2, y2, text, off){
+  const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, nx = -dy / L * off, ny = dx / L * off;
+  const a = { x: x1 + nx, y: y1 + ny }, b = { x: x2 + nx, y: y2 + ny }, ex = nx / Math.abs(off || 1) * 4, ey = ny / Math.abs(off || 1) * 4;
+  ctx.lineWidth = 0.8;
+  bpLine(x1, y1, a.x + ex, a.y + ey); bpLine(x2, y2, b.x + ex, b.y + ey); bpLine(a.x, a.y, b.x, b.y);
+  bpArrow(a, b); bpArrow(b, a);
+  ctx.save(); ctx.translate((a.x + b.x) / 2, (a.y + b.y) / 2);
+  let ang = Math.atan2(dy, dx); if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI;
+  ctx.rotate(ang); ctx.textAlign = "center";
+  const tw = ctx.measureText(text).width;
+  ctx.fillStyle = "rgba(4,18,48,0.9)"; ctx.fillRect(-tw / 2 - 3, -13, tw + 6, 12);
+  ctx.fillStyle = "#d8f6ff"; ctx.fillText(text, 0, -3); ctx.restore();
+}
+function bpHatch(x, y, w, h, step){
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.beginPath();
+  for (let i = -h; i < w; i += step){ ctx.moveTo(x + i, y + h); ctx.lineTo(x + i + h, y); }
+  ctx.stroke(); ctx.restore();
+}
+function bpTag(id, text, x, y){
+  ctx.font = "bold 10px Courier New"; const tw = ctx.measureText(text).width;
+  ctx.fillStyle = state.sel === id ? "#ffb800" : "#7fdcff";
+  ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fillStyle = "rgba(4,18,48,0.95)"; ctx.fill();
+  ctx.strokeStyle = state.sel === id ? "#ffb800" : "#7fdcff"; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.fillStyle = ctx.strokeStyle; ctx.textAlign = "center"; ctx.fillText(id === "solar" ? "01" : id === "airlock" ? "02" : id === "hab" ? "03" : id === "mast" ? "04" : "05", x, y + 3.5);
+  ctx.textAlign = "left"; ctx.font = "10px Courier New"; ctx.fillText(text, x + 13, y + 3.5);
+  ctx.textAlign = "left";
+}
+
+function drawBlueprintOverlay(cx, cy, s){
+  bpHits = [];
+  ctx.save();
+  // blueprint wash over the photoreal scene (scene stays visible underneath)
+  ctx.fillStyle = "rgba(3,22,58,0.66)"; ctx.fillRect(0, 0, W, H);
+  const g = Math.max(10, s * 0.0217); // 1 m grid
+  ctx.lineWidth = 1;
+  for (let pass = 0; pass < 2; pass++){
+    const step = pass ? g * 5 : g;
+    ctx.strokeStyle = pass ? "rgba(110,190,255,0.16)" : "rgba(110,190,255,0.07)";
+    ctx.beginPath();
+    for (let x = cx % step; x < W; x += step){ ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+    for (let y = cy % step; y < H; y += step){ ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    ctx.stroke();
+  }
+  ctx.font = "10px Courier New"; ctx.textBaseline = "alphabetic";
+  const C = "#7fdcff", SEL = "#ffb800", col = id => state.sel === id ? SEL : C;
+
+  // ── ground datum + foundation section
+  const gy = cy + 0.03 * s;
+  ctx.strokeStyle = C; ctx.fillStyle = C; ctx.lineWidth = 1; ctx.setLineDash([14, 4, 2, 4]);
+  bpLine(0, gy, W, gy); ctx.setLineDash([]);
+  ctx.fillText("±0.00 DATUM — SINTERED REGOLITH PAD (0.3 m)", 12, gy + 14);
+  ctx.strokeStyle = "rgba(127,220,255,0.35)"; ctx.lineWidth = 0.7;
+  bpHatch(cx - 0.33 * s, gy, 0.66 * s, 0.3 / M_PER_S * s, 5);
+
+  // ── 03 HABITAT — half elevation (left) / half section A-A (right)
+  const r = 0.13 * s, ry = 0.82 * r, t = 1.5 / M_PER_S * s;
+  ctx.strokeStyle = col("hab"); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(cx, gy, r, ry, 0, Math.PI, 0); ctx.stroke();
+  ctx.lineWidth = 1; ctx.setLineDash([5, 3]);
+  ctx.beginPath(); ctx.ellipse(cx, gy, r - t, ry - t, 0, Math.PI, Math.PI * 1.5); ctx.stroke(); // hidden line (elevation half)
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.ellipse(cx, gy, r - t, ry - t, 0, Math.PI * 1.5, 0); ctx.stroke();
+  // section hatch through regolith shield (right half)
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(cx, gy, r, ry, 0, -Math.PI / 2, 0); ctx.lineTo(cx + r - t, gy);
+  ctx.ellipse(cx, gy, r - t, ry - t, 0, 0, -Math.PI / 2, true); ctx.closePath(); ctx.clip();
+  ctx.strokeStyle = state.sel === "hab" ? "rgba(255,184,0,0.55)" : "rgba(127,220,255,0.5)"; ctx.lineWidth = 0.7;
+  ctx.beginPath(); for (let i = -2 * r; i < 2 * r; i += 4){ ctx.moveTo(cx + i, gy); ctx.lineTo(cx + i + ry, gy - ry); } ctx.stroke();
+  ctx.restore();
+  // pressure bladder (thin double line just inside shield) + floor + plenum
+  ctx.strokeStyle = col("hab"); ctx.lineWidth = 0.6;
+  const tb = 0.15 / M_PER_S * s;
+  ctx.beginPath(); ctx.ellipse(cx, gy, r - t - tb, ry - t - tb, 0, Math.PI * 1.5, 0); ctx.stroke();
+  const floorY = gy - 0.4 / M_PER_S * s, plenY = floorY - 2.6 / M_PER_S * s;
+  const halfAt = y => (r - t) * Math.sqrt(Math.max(0, 1 - ((gy - y) / (ry - t)) ** 2));
+  ctx.lineWidth = 1.2; bpLine(cx - halfAt(floorY), floorY, cx + halfAt(floorY), floorY);
+  ctx.setLineDash([3, 3]); ctx.lineWidth = 0.8; bpLine(cx, plenY, cx + halfAt(plenY), plenY); ctx.setLineDash([]);
+  // racks / bunks in section half
+  ctx.lineWidth = 0.7;
+  for (let i = 0; i < 3; i++){ const rx = cx + (0.4 + i * 0.85) / M_PER_S * s; ctx.strokeRect(rx, floorY - 2.0 / M_PER_S * s, 0.7 / M_PER_S * s, 2.0 / M_PER_S * s); }
+  // centre line
+  ctx.setLineDash([16, 4, 3, 4]); ctx.lineWidth = 0.7; bpLine(cx, gy + 0.05 * s, cx, gy - ry - 0.04 * s); ctx.setLineDash([]);
+  ctx.fillStyle = col("hab"); ctx.fillText("℄", cx + 3, gy - ry - 0.03 * s);
+  ctx.fillText("ELEVATION", cx - r * 0.75, gy - 6); ctx.fillText("SECTION A-A", cx + r * 0.3, gy - 6);
+  ctx.fillText("+0.40 FFL", cx - halfAt(floorY) - 58, floorY + 3);
+  ctx.fillText("UTILITY PLENUM", cx + halfAt(plenY) * 0.2, plenY - 4);
+  // section cut markers A-A
+  for (const sx of [cx + r + 0.03 * s]){ ctx.lineWidth = 2; bpLine(sx, gy - ry * 0.55, sx, gy - ry * 0.55 - 14); ctx.font = "bold 11px Courier New"; ctx.fillText("A", sx + 4, gy - ry * 0.55 - 4); ctx.font = "10px Courier New"; }
+  // dimensions
+  ctx.strokeStyle = C; ctx.fillStyle = C;
+  bpDim(cx - r, gy, cx + r, gy, "Ø " + fm(2 * r, s) + " O/A", 0.075 * s);
+  ctx.setLineDash([2, 3]); ctx.lineWidth = 0.6; bpLine(cx, gy - ry, cx + r + 0.06 * s, gy - ry); ctx.setLineDash([]);
+  bpDim(cx + r + 0.05 * s, gy, cx + r + 0.05 * s, gy - ry, fm(ry, s), -0.0001);
+  // shield thickness callout
+  const ang = -Math.PI / 4, ox = cx + r * Math.cos(ang), oy = gy + ry * Math.sin(ang);
+  const ix = cx + (r - t) * Math.cos(ang), iy = gy + (ry - t) * Math.sin(ang);
+  bpDim(ix, iy, ox, oy, fm(Math.hypot(ox - ix, oy - iy), s).replace(/\d+\.\d m/, "1.5 m") + " SHIELD", 0.0001);
+  bpHits.push({ id: "hab", x: cx - r, y: gy - ry, w: 2 * r, h: ry });
+  bpTag("hab", "HABITAT · SECTION A-A", cx - r * 0.95, gy - ry - 0.03 * s);
+
+  // ── 02 AIRLOCK — elevation with suitports and hatch
+  {
+    const x = cx - 0.19 * s, y = cy + 0.01 * s, w = 0.1 * s, h = 0.045 * s, x0 = x - w / 2;
+    ctx.strokeStyle = col("airlock"); ctx.fillStyle = col("airlock"); ctx.lineWidth = 1.4;
+    ctx.strokeRect(x0, y - h, w, h);
+    ctx.lineWidth = 0.6; ctx.strokeRect(x0 + 2, y - h + 2, w - 4, h - 4); // inner skin
+    for (let i = 1; i < 5; i++) bpLine(x0 + w * i / 5, y - h, x0 + w * i / 5, y); // ring frames
+    ctx.lineWidth = 1; // suitports on outboard end
+    for (const k of [0.3, 0.7]){ ctx.beginPath(); ctx.ellipse(x0 - 0.012 * s, y - h * (1 - k) - 0, 0.006 * s, h * 0.16, 0, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.beginPath(); ctx.arc(x0 + w + 0.006 * s, y - h / 2, h * 0.25, -Math.PI / 2, Math.PI / 2); ctx.stroke(); // hatch to tunnel
+    ctx.fillText("SUITPORT ×2", x0 - 0.06 * s, y - h - 5);
+    ctx.strokeStyle = C; ctx.fillStyle = C;
+    bpDim(x0, y, x0 + w, y, fm(w, s), 0.035 * s);
+    bpDim(x0, y, x0, y - h, "Ø " + fm(h, s), 0.055 * s);
+    bpHits.push({ id: "airlock", x: x0 - 0.02 * s, y: y - h, w: w + 0.03 * s, h });
+    bpTag("airlock", "EVA AIRLOCK", x0, y - h - 0.05 * s);
+  }
+
+  // ── 01 SOLAR ARRAYS
+  for (const dx of [-0.42, -0.32, 0.34, 0.44]){
+    const x = cx + dx * s, y = cy - 0.02 * s, pw = 0.035 * s, ph = 0.16 * s;
+    ctx.strokeStyle = col("solar"); ctx.lineWidth = 1.2;
+    ctx.strokeRect(x - pw / 2, y - ph, pw, ph * 0.62);
+    ctx.lineWidth = 0.5; for (let k = 1; k < 8; k++) bpLine(x - pw / 2, y - ph + ph * 0.62 * k / 8, x + pw / 2, y - ph + ph * 0.62 * k / 8);
+    bpLine(x, y - ph, x, y - ph + ph * 0.62);
+    ctx.lineWidth = 1.2; bpLine(x, y - ph * 0.38, x, y);
+    ctx.lineWidth = 0.8; ctx.strokeRect(x - pw * 0.4, y - 3, pw * 0.8, 3); // ballast base
+    bpHits.push({ id: "solar", x: x - pw / 2, y: y - ph, w: pw, h: ph });
+    if (dx === -0.42){
+      ctx.strokeStyle = C; ctx.fillStyle = C;
+      bpDim(x - pw / 2, y, x - pw / 2, y - ph, fm(ph, s), 0.03 * s);
+      bpDim(x - pw / 2, y - ph, x + pw / 2, y - ph, fm(pw, s), -0.02 * s);
+      bpTag("solar", "VSA-1…4", x - pw / 2, y - ph - 0.055 * s);
+    }
+  }
+
+  // ── 04 MAST
+  {
+    const x = cx + 0.2 * s, y = cy, h = 0.26 * s, b = 0.008 * s;
+    ctx.strokeStyle = col("mast"); ctx.fillStyle = col("mast"); ctx.lineWidth = 1;
+    bpLine(x - b, y, x - b * 0.4, y - h); bpLine(x + b, y, x + b * 0.4, y - h);
+    ctx.lineWidth = 0.5;
+    for (let k = 0; k < 12; k++){
+      const y0 = y - h * k / 12, y1 = y - h * (k + 1) / 12, w0 = b * (1 - 0.6 * k / 12), w1 = b * (1 - 0.6 * (k + 1) / 12);
+      bpLine(x - w0, y0, x + w1, y1); bpLine(x + w0, y0, x - w1, y1);
+    }
+    ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x - 0.015 * s, y - h, 0.03 * s, 0.014 * s, -0.5, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeRect(x + 0.006 * s, y - h * 0.85, 0.01 * s, 0.012 * s); // optical terminal
+    ctx.fillText("Ka HGA Ø0.6", x + 0.025 * s, y - h - 2); ctx.fillText("OPT. TERM.", x + 0.02 * s, y - h * 0.85 + 8);
+    ctx.strokeStyle = C; ctx.fillStyle = C;
+    bpDim(x + b, y, x + b, y - h, fm(h, s), -0.06 * s);
+    bpHits.push({ id: "mast", x: x - 0.05 * s, y: y - h - 0.03 * s, w: 0.08 * s, h: h + 0.03 * s });
+    bpTag("mast", "COMMS / NAV MAST", x + 0.05 * s, y - h * 0.55);
+  }
+
+  // ── 05 uplink geometry
+  ctx.strokeStyle = col("uplink"); ctx.setLineDash([8, 6]); ctx.lineWidth = 1;
+  bpLine(cx + 0.185 * s, cy - 0.26 * s, W * 0.98, H * 0.04); ctx.setLineDash([]);
+  bpHits.push({ id: "uplink", x: W * 0.72, y: H * 0.02, w: W * 0.26, h: H * 0.14 });
+  bpTag("uplink", "→ ELFO RELAY / DSN · 1.28 s OWLT", W * 0.7, H * 0.17);
+
+  // ── scale bar (0–10 m)
+  const u = s / M_PER_S, sx = 16, sy = H - 52;
+  ctx.fillStyle = C; ctx.strokeStyle = C; ctx.lineWidth = 1;
+  for (let i = 0; i < 10; i++){ if (i % 2 === 0) ctx.fillRect(sx + i * u, sy, u, 5); }
+  ctx.strokeRect(sx, sy, 10 * u, 5);
+  ctx.fillText("0", sx - 3, sy - 3); ctx.fillText("5", sx + 5 * u - 3, sy - 3); ctx.fillText("10 m", sx + 10 * u - 6, sy - 3);
+
+  // ── title block
+  const tbW = 330, tbH = 92, tx = W - tbW - 10, ty = H - tbH - 46;
+  ctx.fillStyle = "rgba(3,16,40,0.92)"; ctx.fillRect(tx, ty, tbW, tbH);
+  ctx.strokeStyle = C; ctx.lineWidth = 1.2; ctx.strokeRect(tx, ty, tbW, tbH);
+  ctx.lineWidth = 0.6; bpLine(tx, ty + 24, tx + tbW, ty + 24); bpLine(tx, ty + 48, tx + tbW, ty + 48); bpLine(tx, ty + 70, tx + tbW, ty + 70); bpLine(tx + 200, ty + 24, tx + 200, ty + tbH);
+  ctx.fillStyle = "#ffb800"; ctx.font = "bold 11px Courier New"; ctx.fillText("@MOONBASE.BOT — SITE ELEVATION & SECTION A-A", tx + 8, ty + 16);
+  ctx.fillStyle = "#d8f6ff"; ctx.font = "10px Courier New";
+  ctx.fillText("PROJ: SHACKLETON RIM 89.9°S", tx + 8, ty + 40); ctx.fillText("DWG MB-WV-001", tx + 208, ty + 40);
+  ctx.fillText("UNITS: METRES · GRID 1 m", tx + 8, ty + 63); ctx.fillText("REV C", tx + 208, ty + 63);
+  ctx.fillText("DRAWN: A. T. MIDDLETON", tx + 8, ty + 85); ctx.fillText("2026-11-24", tx + 208, ty + 85);
+  ctx.restore();
+}
+
+function renderSpec(){
+  const el = document.getElementById("spec");
+  if (!state.bp){ el.style.display = "none"; return; }
+  const [title, rows] = SPECS[state.sel] || SPECS.hab;
+  el.style.display = "block";
+  el.innerHTML = `<div class="st">${title}</div>` + rows.map(([k, v]) => `<div class="sr"><span>${k}</span><b>${v}</b></div>`).join("") +
+    `<div class="sn">Concept values derived from published NASA/ESA lunar surface studies. Not flight-certified. Hover or click a part to inspect.</div>`;
+}
+
 // ---------- main render ----------
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 
@@ -316,8 +571,9 @@ function render(){
     const s = Math.min(W * 0.95, Math.min(W, H) * (0.6 + k * 1.0)); // keep whole base in frame
     const cy = H * (0.66 + 0.04 * k);
     const step = state.build ? state.buildT : 5;
-    drawBase(W / 2, cy, s, step, state.labels);
+    drawBase(W / 2, cy, s, state.bp ? 5 : step, state.labels && !state.bp);
     ctx.globalAlpha = 1;
+    if (state.bp && k > 0.6) drawBlueprintOverlay(W / 2, cy, s); else bpHits = [];
   }
 
   const alt = Math.round(100000 * Math.pow(1 - z, 3) + 0.05);
@@ -361,10 +617,27 @@ btn("b-site").onclick = () => go(1);
 btn("b-auto").onclick = e => { state.auto = !state.auto; e.target.classList.toggle("on", state.auto); };
 btn("b-labels").onclick = e => { state.labels = !state.labels; e.target.classList.toggle("on", state.labels); };
 btn("b-build").onclick = e => { state.build = !state.build; state.buildT = 0; e.target.classList.toggle("on", state.build); if (state.build) go(1); };
+btn("b-bp").onclick = e => { state.bp = !state.bp; e.target.classList.toggle("on", state.bp); if (state.bp) go(1); renderSpec(); };
+function hitAt(e){
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  // smallest box wins so the mast/airlock beat the uplink zone
+  return bpHits.filter(h => x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h).sort((a, b) => a.w * a.h - b.w * b.h)[0];
+}
+cv.addEventListener("mousemove", e => {
+  if (!state.bp) return;
+  const h = hitAt(e); cv.style.cursor = h ? "pointer" : "default";
+  if (h && !state.lock && h.id !== state.sel){ state.sel = h.id; renderSpec(); }
+});
+cv.addEventListener("click", e => {
+  if (!state.bp) return;
+  const h = hitAt(e);
+  if (h){ state.sel = h.id; state.lock = true; } else state.lock = false;
+  renderSpec();
+});
 zoomEl.oninput = () => go(zoomEl.value / 1000);
 cv.addEventListener("wheel", e => { e.preventDefault(); go(Math.max(0, Math.min(1, state.target - e.deltaY * 0.001))); }, { passive: false });
 // Allow parent page to drive it: postMessage({moonbase:"site"|"orbit"|"build"})
-window.addEventListener("message", e => { const m = e.data && e.data.moonbase; if (m === "orbit") go(0); else if (m === "site") go(1); else if (m === "build") btn("b-build").click(); });
+window.addEventListener("message", e => { const m = e.data && e.data.moonbase; if (m === "orbit") go(0); else if (m === "site") go(1); else if (m === "build") btn("b-build").click(); else if (m === "blueprint") btn("b-bp").click(); });
 
 window.addEventListener("resize", resize);
 if (window.ResizeObserver) new ResizeObserver(resize).observe(cv);
