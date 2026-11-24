@@ -88,7 +88,7 @@
   // ── Data Fetching (Bridge + Cloud Runner Fallback) ──
   async function fetchJson(path) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 1400);
+    const timer = setTimeout(() => ctrl.abort(), 4000);
     try {
       const res = await fetch(`${bridgeUrl}${path}`, { signal: ctrl.signal });
       clearTimeout(timer);
@@ -152,51 +152,58 @@
     }
   }
 
+  let polling = false;
   async function pollBridge() {
-    const tel = await fetchJson("/api/telemetry");
-    const badge = $("bridge-badge");
-    if (tel) {
-      bridgeOnline = true;
-      badge.textContent = "LOCAL BRIDGE LIVE";
-      badge.className = "bridge-badge live";
-      state.cpu = tel.cpu_pct;
-      state.ram = tel.ram_pct;
-      state.disk = tel.disk_pct;
-      state.netBps = tel.net_bps;
-      state.nnActs = tel.neural_net.activations;
-      state.nnOut = tel.neural_net.outputs;
-      if (Array.isArray(tel.satgpu_nodes) && tel.satgpu_nodes.length) {
-        state.satNodes = tel.satgpu_nodes;
+    if (polling) return;
+    polling = true;
+    try {
+      const tel = await fetchJson("/api/telemetry");
+      const badge = $("bridge-badge");
+      if (tel) {
+        bridgeOnline = true;
+        badge.textContent = "LOCAL BRIDGE LIVE";
+        badge.className = "bridge-badge live";
+        state.cpu = tel.cpu_pct;
+        state.ram = tel.ram_pct;
+        state.disk = tel.disk_pct;
+        state.netBps = tel.net_bps;
+        state.nnActs = tel.neural_net.activations;
+        state.nnOut = tel.neural_net.outputs;
+        if (Array.isArray(tel.satgpu_nodes) && tel.satgpu_nodes.length) {
+          state.satNodes = tel.satgpu_nodes;
+        }
+        const [pRes, tRes, cRes, vRes] = await Promise.all([
+          fetchJson("/api/processes"),
+          fetchJson("/api/tabs"),
+          fetchJson("/api/connections"),
+          fetchJson("/api/vpn-nodes"),
+        ]);
+        if (pRes && pRes.processes) state.procs = pRes.processes;
+        if (tRes && tRes.tabs) state.tabs = tRes.tabs;
+        if (cRes && cRes.connections) state.conns = cRes.connections;
+        if (vRes && vRes.nodes) state.vpnNodes = vRes.nodes;
+        $("bridge-data-note").textContent = `Streaming live Windows data from ${bridgeUrl}`;
+      } else {
+        bridgeOnline = false;
+        badge.textContent = "CLOUD RUNNER SIM";
+        badge.className = "bridge-badge sim";
+        simulateStep();
+        $("bridge-data-note").textContent = "Cloud Runner simulation active (start addon_server.py locally for live OS processes & tabs)";
       }
-      const [pRes, tRes, cRes, vRes] = await Promise.all([
-        fetchJson("/api/processes"),
-        fetchJson("/api/tabs"),
-        fetchJson("/api/connections"),
-        fetchJson("/api/vpn-nodes"),
-      ]);
-      if (pRes && pRes.processes) state.procs = pRes.processes;
-      if (tRes && tRes.tabs) state.tabs = tRes.tabs;
-      if (cRes && cRes.connections) state.conns = cRes.connections;
-      if (vRes && vRes.nodes) state.vpnNodes = vRes.nodes;
-      $("bridge-data-note").textContent = `Streaming live Windows data from ${bridgeUrl}`;
-    } else {
-      bridgeOnline = false;
-      badge.textContent = "CLOUD RUNNER SIM";
-      badge.className = "bridge-badge sim";
-      simulateStep();
-      $("bridge-data-note").textContent = "Cloud Runner simulation active (start addon_server.py locally for live OS processes & tabs)";
+
+      state.cpuHist.push(state.cpu);
+      state.cpuHist.shift();
+      state.ramHist.push(state.ram);
+      state.ramHist.shift();
+      state.netHist.push(Math.min(100, state.netBps / 500000));
+      state.netHist.shift();
+
+      renderDomTelemetry();
+      renderTables();
+      renderSatSidebar();
+    } finally {
+      polling = false;
     }
-
-    state.cpuHist.push(state.cpu);
-    state.cpuHist.shift();
-    state.ramHist.push(state.ram);
-    state.ramHist.shift();
-    state.netHist.push(Math.min(100, state.netBps / 500000));
-    state.netHist.shift();
-
-    renderDomTelemetry();
-    renderTables();
-    renderSatSidebar();
   }
 
   function renderDomTelemetry() {
