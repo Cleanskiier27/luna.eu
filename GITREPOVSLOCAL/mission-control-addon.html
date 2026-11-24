@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="LunaRecycle &amp; NetworkBuster-Cloud Mission Control Addon: Neural Net, SatGPU Onboard Camera, FPV 3D, Global VPN Grid, Intercept, and Swarm CMD.">
+  <meta name="description" content="LunaRecycle &amp; NetworkBuster-Cloud Mission Control Addon: Neural Stream of Thought, Activity Checklist, NASA Force Push VPN Channel, SatGPU Onboard Camera, FPV 3D, and Swarm CMD.">
   <meta name="author" content="Andrew t Middleton">
   <title>LunaRecycle — Mission Control &amp; SatGPU Addon</title>
   <link rel="stylesheet" href="mission-control-addon.css">
@@ -25,11 +25,14 @@
       </div>
     </nav>
 
+    <h1 class="mocr-title">Mission Control &amp; SatGPU Console</h1>
+
     <section class="mocr-bar" aria-label="Mission Control Status">
       <div class="mocr-clocks">
         <span class="clock-chip"><strong>SYS</strong><span id="mocr-status-text">NOMINAL</span></span>
         <span class="clock-chip"><strong>MET</strong><span id="mocr-met">000:00:00:00</span></span>
         <span class="clock-chip"><strong>UTC</strong><span id="mocr-utc">00:00:00</span></span>
+        <span class="clock-chip"><strong>CHK</strong><span id="mocr-checklist-chip">0/8</span></span>
       </div>
       <div class="bridge-controls">
         <span id="bridge-badge" class="bridge-badge sim">CLOUD RUNNER SIM</span>
@@ -40,15 +43,16 @@
     </section>
 
     <div class="tab-strip" role="tablist" aria-label="Mission Control Modules">
-      <button class="tab-btn active" type="button" data-tab="overview">Neural &amp; Telemetry</button>
+      <button class="tab-btn active" type="button" data-tab="overview">Neural &amp; Thought Stream</button>
       <button class="tab-btn" type="button" data-tab="satgpu">SatGPU Onboard Camera</button>
       <button class="tab-btn" type="button" data-tab="fpv">FPV 3D Drive</button>
-      <button class="tab-btn" type="button" data-tab="vpn">Global VPN Grid</button>
+      <button class="tab-btn" type="button" data-tab="vpn">Global VPN &amp; NASA Push</button>
       <button class="tab-btn" type="button" data-tab="intercept">Procs, Tabs &amp; Intercept</button>
+      <button class="tab-btn" type="button" data-tab="checklist">Activity Checklist</button>
       <button class="tab-btn" type="button" data-tab="swarm">Swarm CMD &amp; Runner</button>
     </div>
 
-    <!-- TAB 1: OVERVIEW & NEURAL NET -->
+    <!-- TAB 1: OVERVIEW, NEURAL NET & STREAM OF THOUGHT -->
     <section id="tab-overview" class="tab-pane active">
       <div class="kpi-row">
         <div class="card"><div class="kpi-label">CPU TELEMETRY</div><div id="kpi-cpu" class="kpi-val" style="color:var(--amber)">0.0%</div></div>
@@ -63,14 +67,31 @@
             <span>SYS.01 // DATA NEURAL NETWORK [4-7-9-7-3]</span>
             <span id="nn-outputs" style="color:var(--green)">LOAD 0.00 | EFF 0.00 | ALT 0.00</span>
           </div>
-          <canvas id="nn-canvas" class="viewport" width="640" height="320"></canvas>
+          <canvas id="nn-canvas" class="viewport" width="640" height="310"></canvas>
+
+          <div class="card-header" style="margin-top:12px">
+            <span>SYS.01B // NEURAL STREAM OF THOUGHT</span>
+            <span id="thought-focus-label" style="color:var(--cyan)">FOCUS: ALL</span>
+          </div>
+          <div class="toolbar">
+            <button id="thought-toggle" class="btn-sm" type="button">Pause Stream</button>
+            <button class="btn-sm active" type="button" data-thought-focus="ALL">ALL</button>
+            <button class="btn-sm" type="button" data-thought-focus="TELEMETRY">TELEMETRY</button>
+            <button class="btn-sm" type="button" data-thought-focus="SATGPU">SATGPU</button>
+            <button class="btn-sm" type="button" data-thought-focus="VPN">VPN</button>
+          </div>
+          <div id="nn-thought-stream" class="thought-stream" aria-live="polite"></div>
+          <div class="terminal-in-row">
+            <input id="thought-input" class="input-mono" style="flex:1" type="text" placeholder="Steer neural thought stream (e.g. assess satgpu, vpn latency, checklist)...">
+            <button id="thought-inject" class="btn" type="button">Inject Prompt</button>
+          </div>
         </div>
 
         <div class="card">
           <div class="card-header">
             <span>SYS.02 // ROLLING TELEMETRY &amp; SUBSYSTEMS</span>
           </div>
-          <canvas id="telem-canvas" class="viewport" width="480" height="170"></canvas>
+          <canvas id="telem-canvas" class="viewport" width="480" height="190"></canvas>
           <div id="subsystem-matrix" class="matrix-grid" style="margin-top:10px"></div>
         </div>
       </div>
@@ -120,13 +141,27 @@
       </div>
     </section>
 
-    <!-- TAB 4: GLOBAL VPN GRID -->
+    <!-- TAB 4: GLOBAL VPN GRID + NASA FORCE PUSH CHANNEL -->
     <section id="tab-vpn" class="tab-pane">
       <div class="card">
         <div class="card-header">
-          <span>SYS.05 // GLOBAL PUBLIC VPN NODE GRID</span>
+          <span>SYS.05 // GLOBAL PUBLIC VPN GRID &amp; NASA FORCE PUSH CHANNEL</span>
           <span id="vpn-selected-info" style="color:var(--green)">Click any node to inspect latency &amp; routing arcs</span>
         </div>
+
+        <div class="vpn-push-bar">
+          <strong style="color:var(--amber)">NASA VPN CHANNEL:</strong>
+          <select id="vpn-channel-select" class="select-mono" aria-label="NASA VPN Channel">
+            <option value="DSN-ALPHA (Ka-Band)">DSN-ALPHA (Ka-Band)</option>
+            <option value="MOCR-FORCE-PUSH (S-Band)">MOCR-FORCE-PUSH (S-Band)</option>
+            <option value="LUNA-RELAY (Optical)">LUNA-RELAY (Optical)</option>
+            <option value="SATGPU-SYNC (X-Band)">SATGPU-SYNC (X-Band)</option>
+          </select>
+          <button id="vpn-force-push" class="btn-sm btn-forcepush" type="button">🚀 FORCE PUSH BURST</button>
+          <button id="vpn-auto-push" class="btn-sm" type="button">Auto-Pulse: OFF</button>
+          <span id="vpn-push-stats" style="margin-left:auto;color:var(--cyan)">FRAMES: 0 | RELAYS: 4 | ACK: -- ms</span>
+        </div>
+
         <div class="toolbar" id="vpn-region-bar">
           <button class="btn-sm active" type="button" data-region="ALL">ALL</button>
           <button class="btn-sm" type="button" data-region="ASIA">ASIA</button>
@@ -136,7 +171,8 @@
           <button class="btn-sm" type="button" data-region="AFRICA">AFRICA</button>
           <button class="btn-sm" type="button" data-region="MIDEAST">MIDEAST</button>
         </div>
-        <canvas id="vpn-canvas" class="viewport" width="1120" height="410"></canvas>
+        <canvas id="vpn-canvas" class="viewport" width="1120" height="390"></canvas>
+        <div id="vpn-push-log" class="vpn-push-log" aria-live="polite"></div>
       </div>
     </section>
 
@@ -177,18 +213,42 @@
       </div>
     </section>
 
-    <!-- TAB 6: SWARM CMD & CLOUD RUNNER -->
+    <!-- TAB 6: MISSION ACTIVITY CHECKLIST -->
+    <section id="tab-checklist" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <span>SYS.07 // MISSION ACTIVITY CHECKLIST</span>
+          <span id="chk-summary" style="color:var(--green)">0 / 8 COMPLETE</span>
+        </div>
+        <div class="toolbar">
+          <button id="chk-run-auto" class="btn-sm btn-forcepush" type="button">Run Live Auto-Check</button>
+          <button id="chk-reset" class="btn-sm" type="button">Reset Checklist</button>
+          <button id="chk-export" class="btn-sm" type="button">Export JSON</button>
+        </div>
+        <div class="checklist-progress">
+          <div class="progress-track"><div id="chk-progress-bar" class="progress-fill"></div></div>
+          <span id="chk-progress-text">0%</span>
+        </div>
+        <div id="checklist-items" class="checklist-list"></div>
+        <div class="terminal-in-row" style="margin-top:12px">
+          <input id="chk-new-input" class="input-mono" style="flex:1" type="text" placeholder="Add custom mission activity task...">
+          <button id="chk-add-btn" class="btn" type="button">Add Item</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: SWARM CMD & CLOUD RUNNER -->
     <section id="tab-swarm" class="tab-pane">
       <div class="grid-2">
         <div class="card">
           <div class="card-header">
-            <span>SYS.06 // SWARM COMMAND CONSOLE</span>
+            <span>SYS.08 // SWARM COMMAND CONSOLE</span>
             <span style="color:var(--green)">MOCR-BUS READY</span>
           </div>
           <div id="swarm-out" class="terminal-out"></div>
           <div class="terminal-in-row">
             <span style="font-family:monospace;color:var(--amber)">SWARM@LUNA&gt;</span>
-            <input id="swarm-in" class="input-mono" style="flex:1" type="text" placeholder="Type help, status, satgpu, fpv, vpn, bridge, clear">
+            <input id="swarm-in" class="input-mono" style="flex:1" type="text" placeholder="Type help, status, satgpu, fpv, vpn, forcepush, checklist, thought <msg>, clear">
             <button id="swarm-send" class="btn" type="button">Run</button>
           </div>
         </div>

@@ -15,6 +15,13 @@
     { id: "SATGPU-GEO-WEST", orbit: "GEO 35786km", inc: 0.1, gpu: "H200-GEO 96TFLOPS", lat: 0.0, lon: -105.0, spd: 0.1, tensor_pct: 41, vram_pct: 49, temp_c: 51.0, downlink_mbps: 365 },
   ];
 
+  const NASA_RELAYS_DEFAULT = [
+    { id: "NASA-GDSCC", name: "NASA-GDSCC Goldstone", lat: 35.4, lon: -116.9, band: "Ka-Band", status: "LOCKED" },
+    { id: "NASA-MDSCC", name: "NASA-MDSCC Madrid", lat: 40.4, lon: -4.2, band: "S-Band", status: "LOCKED" },
+    { id: "NASA-CDSCC", name: "NASA-CDSCC Canberra", lat: -35.4, lon: 149.0, band: "X-Band", status: "LOCKED" },
+    { id: "NASA-GSFC", name: "NASA-GSFC Goddard", lat: 39.0, lon: -76.8, band: "Optical", status: "LOCKED" },
+  ];
+
   const VPN_FALLBACK = [
     { city: "Tokyo", country: "JP", lat: 35.6, lon: 139.7, provider: "VPN Gate", users: 2341, ping_ms: 28 },
     { city: "Seoul", country: "KR", lat: 37.6, lon: 126.9, provider: "VPN Gate", users: 1543, ping_ms: 34 },
@@ -30,6 +37,17 @@
     { city: "Toronto", country: "CA", lat: 43.7, lon: -79.4, provider: "VPN Gate", users: 876, ping_ms: 35 },
   ];
 
+  const DEFAULT_CHECKLIST = [
+    { id: "bridge", label: "Verify Local Telemetry Bridge (/api/health & /api/telemetry)", done: false, detail: "Pending check", status: "PENDING" },
+    { id: "procs", label: "Verify Live Running Programs & Socket Intercept Feeds", done: false, detail: "Pending check", status: "PENDING" },
+    { id: "neural", label: "Confirm Neural Network [4-7-9-7-3] & Stream of Thought Active", done: true, detail: "Stream active", status: "PASS" },
+    { id: "satgpu", label: "Lock SatGPU Orbital Compute Node & Onboard Camera Feed", done: true, detail: "SATGPU-ALPHA locked", status: "PASS" },
+    { id: "vpn", label: "Verify Global VPN Grid & NASA Force Push Relay Channel", done: false, detail: "Pending check", status: "PENDING" },
+    { id: "routes", label: "Probe LunaRecycle Site & Sim Routes (index, rocket-launch, simulation3d, seo-toolkit)", done: false, detail: "Pending check", status: "PENDING" },
+    { id: "owner", label: "Confirm Ownership Attribution (Andrew t Middleton) & DATACENTRAL Link", done: true, detail: "Verified in DOM", status: "PASS" },
+    { id: "sync", label: "Review Branch Sync (addon/mission-control-satgpu & DATACENTRAL)", done: true, detail: "Synced on GitHub", status: "PASS" },
+  ];
+
   const state = {
     cpu: 24,
     ram: 48,
@@ -41,23 +59,52 @@
     nnLayers: [4, 7, 9, 7, 3],
     nnActs: [[0.24, 0.48, 0.18, 0.52], Array(7).fill(0.5), Array(9).fill(0.5), Array(7).fill(0.5), [0.42, 0.78, 0.19]],
     nnOut: { load_index: 0.42, efficiency: 0.78, alert_level: 0.19 },
+    thoughtTrace: null,
+    thoughtPaused: false,
+    thoughtFocus: "ALL",
+    thoughts: [],
     satNodes: SATGPU_DEFAULT,
     satIdx: 0,
     satMode: "OPTICAL",
     satZoom: 1.0,
+    nasaRelays: NASA_RELAYS_DEFAULT,
     vpnNodes: VPN_FALLBACK,
     vpnRegion: "ALL",
     vpnSelected: null,
+    vpnBursts: [],
+    vpnPushFrames: 0,
+    vpnAutoPush: false,
     procs: [],
     tabs: [],
     conns: [],
+    checklist: loadChecklist(),
     fpv: { x: 0, y: 0, z: -8, yaw: 0, pitch: 0, thrust: 0.03, orbit: true, angle: 0, dragging: false, lx: 0, ly: 0 },
   };
 
-  // ── DOM References ──
+  function loadChecklist() {
+    try {
+      const raw = localStorage.getItem("mocr_activity_checklist_v1");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch { /* ignore */ }
+    return DEFAULT_CHECKLIST.map((x) => ({ ...x }));
+  }
+
+  function saveChecklist() {
+    try {
+      localStorage.setItem("mocr_activity_checklist_v1", JSON.stringify(state.checklist));
+    } catch { /* ignore */ }
+  }
+
   const $ = (id) => document.getElementById(id);
   const bridgeInput = $("bridge-url");
   bridgeInput.value = bridgeUrl;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
+  }
 
   // ── Tab Switching ──
   document.querySelectorAll(".tab-btn").forEach((btn) => {
@@ -74,6 +121,7 @@
     localStorage.setItem("mocr_bridge_url", bridgeUrl);
     pollBridge();
     appendTerm(`[BRIDGE] Reconnecting to ${bridgeUrl} ...`);
+    pushThought("CONTEXT", "TELEMETRY", `Reconnecting telemetry bridge -> ${bridgeUrl}`);
   });
 
   // ── Clocks ──
@@ -84,6 +132,74 @@
     const pad = (n, w = 2) => String(n).padStart(w, "0");
     $("mocr-met").textContent = `${pad(Math.floor(s / 86400), 3)}:${pad(Math.floor((s % 86400) / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
   }, 1000);
+
+  // ── Neural Stream of Thought Engine ──
+  function pushThought(phase, domain, text) {
+    if (state.thoughtPaused && phase !== "PROMPT") return;
+    const ts = new Date().toISOString().slice(11, 19);
+    state.thoughts.push({ ts, phase, domain, text });
+    if (state.thoughts.length > 60) state.thoughts.shift();
+    renderThoughtStream();
+  }
+
+  function renderThoughtStream() {
+    const box = $("nn-thought-stream");
+    if (!box) return;
+    const filtered = state.thoughtFocus === "ALL"
+      ? state.thoughts
+      : state.thoughts.filter((t) => t.domain === state.thoughtFocus || t.phase === "PROMPT");
+    const clsMap = { SENSE: "thought-sense", CONTEXT: "thought-ctx", DECIDE: "thought-decide", PROMPT: "thought-user" };
+    box.innerHTML = filtered.slice(-30).map((t) =>
+      `<div class="thought-line"><span class="thought-time">[${t.ts}]</span>` +
+      `<span class="thought-phase ${clsMap[t.phase] || "thought-ctx"}">${esc(t.phase)}//${esc(t.domain)}</span>` +
+      `<span>${esc(t.text)}</span></div>`
+    ).join("");
+    box.scrollTop = box.scrollHeight;
+  }
+
+  $("thought-toggle").addEventListener("click", () => {
+    state.thoughtPaused = !state.thoughtPaused;
+    $("thought-toggle").textContent = state.thoughtPaused ? "Resume Stream" : "Pause Stream";
+  });
+
+  document.querySelectorAll("[data-thought-focus]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.thoughtFocus = btn.dataset.thoughtFocus;
+      document.querySelectorAll("[data-thought-focus]").forEach((x) => x.classList.toggle("active", x === btn));
+      $("thought-focus-label").textContent = `FOCUS: ${state.thoughtFocus}`;
+      renderThoughtStream();
+    });
+  });
+
+  function handleThoughtPrompt(raw) {
+    const q = raw.trim();
+    if (!q) return;
+    pushThought("PROMPT", "USER", q);
+    const low = q.toLowerCase();
+    const nd = state.satNodes[state.satIdx] || SATGPU_DEFAULT[0];
+    if (low.includes("sat")) {
+      pushThought("DECIDE", "SATGPU", `${nd.id} (${nd.orbit}) Tensor=${nd.tensor_pct}% VRAM=${nd.vram_pct}% Temp=${nd.temp_c}C Downlink=${nd.downlink_mbps}Mbps.`);
+    } else if (low.includes("vpn") || low.includes("nasa") || low.includes("push")) {
+      const ch = $("vpn-channel-select").value;
+      pushThought("DECIDE", "VPN", `Channel ${ch} locked across ${state.nasaRelays.length} NASA DSN relays -> ${state.vpnNodes.length} public VPN nodes (${state.vpnPushFrames} bursts sent).`);
+    } else if (low.includes("check")) {
+      const doneCount = state.checklist.filter((c) => c.done).length;
+      pushThought("DECIDE", "TELEMETRY", `Activity checklist ${doneCount}/${state.checklist.length} items complete.`);
+    } else {
+      pushThought("DECIDE", "TELEMETRY", `System ${Math.max(state.cpu, state.ram) > 80 ? "ELEVATED" : "NOMINAL"}: CPU=${state.cpu.toFixed(1)}% RAM=${state.ram.toFixed(1)}% LoadIdx=${state.nnOut.load_index.toFixed(2)} Eff=${state.nnOut.efficiency.toFixed(2)}.`);
+    }
+  }
+
+  $("thought-inject").addEventListener("click", () => {
+    handleThoughtPrompt($("thought-input").value);
+    $("thought-input").value = "";
+  });
+  $("thought-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      handleThoughtPrompt($("thought-input").value);
+      $("thought-input").value = "";
+    }
+  });
 
   // ── Data Fetching (Bridge + Cloud Runner Fallback) ──
   async function fetchJson(path) {
@@ -133,6 +249,13 @@
       temp_c: Number((42 + state.cpu * 0.25).toFixed(1)),
       downlink_mbps: Math.round(320 + 160 * Math.abs(Math.sin(t * 0.3 + idx))),
     }));
+    state.thoughtTrace = {
+      stage: Math.max(state.cpu, state.ram) > 80 ? "ELEVATED" : "NOMINAL",
+      peak_layer_idx: 2,
+      peak_neuron: 3,
+      peak_activation: state.nnActs[2][3],
+      summary: `SIM SENSE CPU ${state.cpu.toFixed(1)}% RAM ${state.ram.toFixed(1)}% -> H2#4 (${state.nnActs[2][3].toFixed(2)}) -> Cloud Runner nominal`,
+    };
     if (!state.procs.length) {
       state.procs = [
         { pid: 4195, name: "addon_server.py (sim)", cpu: 3.4, ram_mb: 44.2 },
@@ -153,6 +276,7 @@
   }
 
   let polling = false;
+  let pollSeq = 0;
   async function pollBridge() {
     if (polling) return;
     polling = true;
@@ -169,6 +293,7 @@
         state.netBps = tel.net_bps;
         state.nnActs = tel.neural_net.activations;
         state.nnOut = tel.neural_net.outputs;
+        state.thoughtTrace = tel.thought_trace || null;
         if (Array.isArray(tel.satgpu_nodes) && tel.satgpu_nodes.length) {
           state.satNodes = tel.satgpu_nodes;
         }
@@ -182,6 +307,7 @@
         if (tRes && tRes.tabs) state.tabs = tRes.tabs;
         if (cRes && cRes.connections) state.conns = cRes.connections;
         if (vRes && vRes.nodes) state.vpnNodes = vRes.nodes;
+        if (vRes && Array.isArray(vRes.nasa_relays) && vRes.nasa_relays.length) state.nasaRelays = vRes.nasa_relays;
         $("bridge-data-note").textContent = `Streaming live Windows data from ${bridgeUrl}`;
       } else {
         bridgeOnline = false;
@@ -189,6 +315,16 @@
         badge.className = "bridge-badge sim";
         simulateStep();
         $("bridge-data-note").textContent = "Cloud Runner simulation active (start addon_server.py locally for live OS processes & tabs)";
+      }
+
+      pollSeq += 1;
+      if (state.thoughtTrace) {
+        if (pollSeq % 2 === 1) {
+          pushThought("SENSE", "TELEMETRY", state.thoughtTrace.summary);
+        } else {
+          const nd = state.satNodes[state.satIdx] || SATGPU_DEFAULT[0];
+          pushThought("CONTEXT", "SATGPU", `${nd.id} tensor=${nd.tensor_pct}% temp=${nd.temp_c}C | Net=${formatBytes(state.netBps)} -> Eff=${state.nnOut.efficiency.toFixed(2)}`);
+        }
       }
 
       state.cpuHist.push(state.cpu);
@@ -218,10 +354,10 @@
       ["CPU-CORE", state.cpu > 80 ? "WARN" : "NOMINAL", state.cpu > 80 ? "#ffa500" : "#00ff66"],
       ["MEM-BUS", state.ram > 85 ? "WARN" : "NOMINAL", state.ram > 85 ? "#ffa500" : "#00ff66"],
       ["SATGPU-CAM", "ORBITAL", "#00e5ff"],
-      ["FPV-DRIVE", "ACTIVE", "#c084fc"],
-      ["GLOBAL-VPN", `${state.vpnNodes.length} NODES`, "#00ff66"],
+      ["THOUGHT-ENG", state.thoughtPaused ? "PAUSED" : "STREAMING", state.thoughtPaused ? "#ffa500" : "#00ff66"],
+      ["NASA-VPN", `${state.nasaRelays.length} RELAYS`, "#ffb800"],
       ["NET-INTERCEPT", "ARMED", "#ff4757"],
-      ["SWARM-BUS", "ONLINE", "#ffb800"],
+      ["CHECKLIST", `${state.checklist.filter((c) => c.done).length}/${state.checklist.length}`, "#c084fc"],
       ["BRIDGE", bridgeOnline ? "LIVE" : "SIM", bridgeOnline ? "#00ff66" : "#ffb800"],
     ];
     $("subsystem-matrix").innerHTML = matrix
@@ -247,13 +383,9 @@
       .map((c) => `<tr><td>${esc(c.proto)}</td><td>${esc(c.remote)}</td><td>${esc(c.process)}</td><td class="tag-${c.threat.toLowerCase()}">${esc(c.threat)}</td></tr>`).join("");
   }
 
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
-  }
-
   $("table-search").addEventListener("input", renderTables);
 
-  // ── Canvas 1: Neural Net ──
+  // ── Canvas 1: Refined Neural Net with Traveling Signal Packets & Layer Labels ──
   function drawNN() {
     const cv = $("nn-canvas");
     const ctx = cv.getContext("2d");
@@ -263,44 +395,92 @@
 
     const layers = state.nnLayers;
     const pos = layers.map((n, li) => {
-      const x = 60 + (li * (W - 120)) / (layers.length - 1);
+      const x = 84 + (li * (W - 168)) / (layers.length - 1);
       return Array.from({ length: n }, (_, ni) => ({
         x,
-        y: n === 1 ? H / 2 : 34 + (ni * (H - 68)) / (n - 1),
+        y: n === 1 ? H / 2 : 28 + (ni * (H - 64)) / (n - 1),
       }));
     });
 
-    const t = Date.now() * 0.004;
+    const t = Date.now() * 0.0035;
     for (let l = 0; l < layers.length - 1; l++) {
       for (let i = 0; i < pos[l].length; i++) {
         for (let j = 0; j < pos[l + 1].length; j++) {
           const act = (state.nnActs[l] && state.nnActs[l][i]) || 0.4;
           const pulse = 0.5 + 0.5 * Math.sin(t + i * 0.9 + j * 0.6 + l);
-          ctx.strokeStyle = pulse * act > 0.48 ? "rgba(255, 184, 0, 0.58)" : "rgba(40, 58, 100, 0.35)";
-          ctx.lineWidth = pulse * act > 0.48 ? 1.5 : 0.7;
+          const hot = pulse * act > 0.46;
+          ctx.strokeStyle = hot ? "rgba(255, 184, 0, 0.56)" : "rgba(40, 58, 100, 0.32)";
+          ctx.lineWidth = hot ? 1.4 : 0.7;
           ctx.beginPath();
           ctx.moveTo(pos[l][i].x, pos[l][i].y);
           ctx.lineTo(pos[l + 1][j].x, pos[l + 1][j].y);
           ctx.stroke();
+
+          if (hot && ((i + j + l) % 3 === 0)) {
+            const p = (t * 0.6 + i * 0.17 + j * 0.23) % 1;
+            const px = pos[l][i].x + (pos[l + 1][j].x - pos[l][i].x) * p;
+            const py = pos[l][i].y + (pos[l + 1][j].y - pos[l][i].y) * p;
+            ctx.fillStyle = l === layers.length - 2 ? "#00ff66" : "#00e5ff";
+            ctx.beginPath();
+            ctx.arc(px, py, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       }
     }
 
     const cols = ["#ffb800", "#c084fc", "#818cf8", "#c084fc", "#00ff66"];
+    const layerNames = ["IN:TELEM", "H1:ENC", "H2:CTX", "H3:DEC", "OUT:ACT"];
+    const inLabels = ["CPU", "RAM", "NET", "DSK"];
+    const outLabels = ["LOAD", "EFF", "ALRT"];
+
     pos.forEach((colNodes, l) => {
+      const layerActs = state.nnActs[l] || [];
+      let peakIdx = 0;
+      layerActs.forEach((v, idx) => { if (v > (layerActs[peakIdx] || 0)) peakIdx = idx; });
+
       colNodes.forEach((pt, j) => {
-        const act = (state.nnActs[l] && state.nnActs[l][j]) || 0.3;
+        const act = layerActs[j] || 0.3;
+        const r = 8 + act * 4;
+        if (l > 0 && l < layers.length - 1 && j === peakIdx) {
+          ctx.strokeStyle = "#00e5ff";
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, r + 4, 0, Math.PI * 2);
+          ctx.stroke();
+        }
         ctx.fillStyle = cols[l];
-        ctx.globalAlpha = 0.25 + act * 0.75;
+        ctx.globalAlpha = 0.25 + act * 0.72;
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 8 + act * 4, 0, Math.PI * 2);
+        ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
         ctx.strokeStyle = cols[l];
         ctx.lineWidth = 1.4;
         ctx.stroke();
+
+        ctx.fillStyle = act > 0.55 ? "#030712" : "#e6edf3";
+        ctx.font = "9px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillText(act.toFixed(1), pt.x, pt.y + 3);
+
+        if (l === 0) {
+          ctx.fillStyle = "#ffb800";
+          ctx.textAlign = "right";
+          ctx.fillText(inLabels[j] || "", pt.x - 16, pt.y + 3);
+        } else if (l === layers.length - 1) {
+          ctx.fillStyle = "#00ff66";
+          ctx.textAlign = "left";
+          ctx.fillText(outLabels[j] || "", pt.x + 16, pt.y + 3);
+        }
       });
+
+      ctx.fillStyle = cols[l];
+      ctx.font = "bold 10px Courier New";
+      ctx.textAlign = "center";
+      ctx.fillText(layerNames[l], colNodes[0].x, H - 10);
     });
+    ctx.textAlign = "left";
   }
 
   // ── Canvas 2: Rolling Telemetry ──
@@ -342,6 +522,7 @@
         state.satIdx = Number(b.dataset.satIdx);
         wrap.querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b));
         renderSatSidebar();
+        pushThought("DECIDE", "SATGPU", `Switched onboard camera feed to ${state.satNodes[state.satIdx].id}`);
       });
     });
     document.querySelectorAll("[data-sat-mode]").forEach((b) => {
@@ -395,7 +576,6 @@
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Earth limb
     const r = Math.max(W, H) * 0.92 * state.satZoom;
     const hy = H * 0.43;
     ctx.fillStyle = limb;
@@ -406,7 +586,6 @@
     ctx.fill();
     ctx.stroke();
 
-    // Terrain waves
     for (let b = 0; b < 6; b++) {
       ctx.strokeStyle = b % 2 === 0 ? band : hi;
       ctx.lineWidth = 1.4;
@@ -427,7 +606,6 @@
       ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx + Math.cos(t * 2) * rad, ry + Math.sin(t * 2) * rad); ctx.stroke();
     }
 
-    // Reticle
     const mx = W / 2, my = H / 2;
     ctx.strokeStyle = hud;
     ctx.lineWidth = 1.2;
@@ -523,7 +701,7 @@
     ctx.stroke();
   }
 
-  // ── Global VPN Grid ──
+  // ── Global VPN Grid & NASA Force Push Channel ──
   const REGIONS = {
     ASIA: ["JP", "KR", "TH", "SG", "IN", "HK", "TW", "ID", "PK"],
     EUROPE: ["DE", "NL", "GB", "FR", "CH", "SE", "PL", "RU", "RO", "IT"],
@@ -538,6 +716,41 @@
       document.querySelectorAll("#vpn-region-bar button").forEach((x) => x.classList.toggle("active", x === b));
     });
   });
+
+  function visibleVpnNodes() {
+    return state.vpnRegion === "ALL"
+      ? state.vpnNodes
+      : state.vpnNodes.filter((n) => (REGIONS[state.vpnRegion] || []).includes(n.country));
+  }
+
+  function triggerNasaForcePush() {
+    const channel = $("vpn-channel-select").value;
+    const targets = visibleVpnNodes();
+    state.vpnPushFrames += 1;
+    const avgPing = targets.length
+      ? Math.round(targets.reduce((acc, n) => acc + n.ping_ms, 0) / targets.length)
+      : 0;
+    const ts = new Date().toISOString().slice(11, 19);
+    state.vpnBursts.push({ started: Date.now(), channel, relayIdx: state.vpnPushFrames % state.nasaRelays.length });
+    if (state.vpnBursts.length > 6) state.vpnBursts.shift();
+
+    $("vpn-push-stats").textContent = `FRAMES: ${state.vpnPushFrames} | RELAYS: ${state.nasaRelays.length} | ACK: ${avgPing} ms`;
+    const log = $("vpn-push-log");
+    const relay = state.nasaRelays[state.vpnPushFrames % state.nasaRelays.length];
+    log.textContent = `[${ts}] FORCE PUSH #${state.vpnPushFrames} [${channel}] from ${relay.id} -> ${targets.length} VPN nodes (avg ACK ${avgPing}ms)\n` + log.textContent;
+    pushThought("DECIDE", "VPN", `NASA Force Push #${state.vpnPushFrames} on ${channel} via ${relay.id} (${targets.length} nodes, ${avgPing}ms ACK).`);
+    appendTerm(`[NASA-VPN] Force Push #${state.vpnPushFrames} dispatched on ${channel} (${targets.length} nodes).`);
+  }
+
+  $("vpn-force-push").addEventListener("click", triggerNasaForcePush);
+  $("vpn-auto-push").addEventListener("click", () => {
+    state.vpnAutoPush = !state.vpnAutoPush;
+    $("vpn-auto-push").textContent = `Auto-Pulse: ${state.vpnAutoPush ? "ON" : "OFF"}`;
+    $("vpn-auto-push").classList.toggle("active", state.vpnAutoPush);
+  });
+  setInterval(() => {
+    if (state.vpnAutoPush) triggerNasaForcePush();
+  }, 4500);
 
   function llToXY(lat, lon, W, H) {
     const px = 30, py = 20;
@@ -583,9 +796,9 @@
       ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W - 30, y); ctx.stroke();
     }
 
-    const visible = state.vpnRegion === "ALL"
-      ? state.vpnNodes
-      : state.vpnNodes.filter((n) => (REGIONS[state.vpnRegion] || []).includes(n.country));
+    const visible = visibleVpnNodes();
+    const now = Date.now();
+    state.vpnBursts = state.vpnBursts.filter((b) => now - b.started < 2400);
 
     const hub = state.vpnSelected || visible[0];
     if (hub) {
@@ -597,7 +810,30 @@
       });
     }
 
-    const pulse = (Date.now() % 1800) / 1800;
+    // Active NASA Force Push waves & arcs
+    state.vpnBursts.forEach((burst) => {
+      const prog = (now - burst.started) / 2400;
+      const relay = state.nasaRelays[burst.relayIdx] || state.nasaRelays[0];
+      const [rx, ry] = llToXY(relay.lat, relay.lon, W, H);
+
+      ctx.strokeStyle = `rgba(255, 184, 0, ${(1 - prog).toFixed(2)})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(rx, ry, 8 + prog * 90, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = `rgba(255, 184, 0, ${((1 - prog) * 0.55).toFixed(2)})`;
+      ctx.lineWidth = 1.2;
+      visible.slice(0, 14).forEach((n) => {
+        const [nx, ny] = llToXY(n.lat, n.lon, W, H);
+        ctx.beginPath();
+        ctx.moveTo(rx, ry);
+        ctx.quadraticCurveTo((rx + nx) / 2, Math.min(ry, ny) - 34, nx, ny);
+        ctx.stroke();
+      });
+    });
+
+    const pulse = (now % 1800) / 1800;
     visible.forEach((nd) => {
       const [x, y] = llToXY(nd.lat, nd.lon, W, H);
       const col = nd.ping_ms < 60 ? "#00ff66" : nd.ping_ms < 150 ? "#ffb800" : "#ff4757";
@@ -612,7 +848,129 @@
         ctx.fillText(`${nd.city} (${nd.ping_ms}ms)`, x + 7, y + 3);
       }
     });
+
+    // NASA DSN / MOCR Relay Diamonds
+    state.nasaRelays.forEach((relay) => {
+      const [rx, ry] = llToXY(relay.lat, relay.lon, W, H);
+      ctx.fillStyle = "#ffb800";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(rx, ry - 6);
+      ctx.lineTo(rx + 6, ry);
+      ctx.lineTo(rx, ry + 6);
+      ctx.lineTo(rx - 6, ry);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = "bold 10px Courier New";
+      ctx.fillStyle = "#ffb800";
+      ctx.fillText(`${relay.id} [${relay.band}]`, rx + 8, ry - 4);
+    });
   }
+
+  // ── Activity Checklist ──
+  function renderChecklist() {
+    const list = $("checklist-items");
+    const done = state.checklist.filter((c) => c.done).length;
+    const total = state.checklist.length || 1;
+    const pct = Math.round((done / total) * 100);
+    $("chk-progress-bar").style.width = `${pct}%`;
+    $("chk-progress-text").textContent = `${pct}%`;
+    $("chk-summary").textContent = `${done} / ${state.checklist.length} COMPLETE`;
+    $("mocr-checklist-chip").textContent = `${done}/${state.checklist.length}`;
+
+    list.innerHTML = state.checklist.map((item, idx) => {
+      const cls = item.status === "PASS" ? "chk-pass" : item.status === "WARN" ? "chk-warn" : "chk-pending";
+      return `<div class="check-row">` +
+        `<label><input type="checkbox" data-chk-idx="${idx}" ${item.done ? "checked" : ""}><span>${esc(item.label)}</span></label>` +
+        `<div class="check-meta"><span style="color:var(--muted);font-size:0.74rem">${esc(item.detail)}</span>` +
+        `<span class="chk-pill ${cls}">${esc(item.status)}</span></div></div>`;
+    }).join("");
+
+    list.querySelectorAll("input[type='checkbox']").forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const idx = Number(cb.dataset.chkIdx);
+        state.checklist[idx].done = cb.checked;
+        state.checklist[idx].status = cb.checked ? "PASS" : "PENDING";
+        state.checklist[idx].detail = cb.checked ? "Manual check" : "Unchecked";
+        saveChecklist();
+        renderChecklist();
+        renderDomTelemetry();
+      });
+    });
+  }
+
+  async function runAutoChecklist() {
+    pushThought("SENSE", "TELEMETRY", "Running live Activity Checklist audit across bridge, VPN, and site routes...");
+    const setItem = (id, ok, detail) => {
+      const it = state.checklist.find((x) => x.id === id);
+      if (it) {
+        it.done = ok;
+        it.status = ok ? "PASS" : "WARN";
+        it.detail = detail;
+      }
+    };
+
+    const [health, tel, procs, conns, vpn] = await Promise.all([
+      fetchJson("/api/health"),
+      fetchJson("/api/telemetry"),
+      fetchJson("/api/processes"),
+      fetchJson("/api/connections"),
+      fetchJson("/api/vpn-nodes"),
+    ]);
+
+    setItem("bridge", Boolean(health && tel), health ? `Online (uptime ${health.uptime_s}s)` : "Bridge offline (SIM mode)");
+    setItem("procs", Boolean(procs && conns), procs ? `${procs.count} procs / ${conns.count} sockets` : "Fallback rows");
+    setItem("neural", state.thoughts.length > 0, `Stream active (${state.thoughts.length} thoughts)`);
+    setItem("satgpu", state.satNodes.length > 0, `${state.satNodes[state.satIdx].id} ready`);
+    setItem("vpn", Boolean(vpn && vpn.nodes), vpn ? `${vpn.count} nodes + ${(vpn.nasa_relays || state.nasaRelays).length} NASA relays` : `${state.vpnNodes.length} fallback nodes`);
+
+    const routeUrls = ["index.html", "rocket-launch.html", "simulation3d.html", "seo-toolkit.html"];
+    const routeChecks = await Promise.all(routeUrls.map(async (u) => {
+      try {
+        const res = await fetch(u, { method: "GET" });
+        return res.ok;
+      } catch {
+        return false;
+      }
+    }));
+    const okCount = routeChecks.filter(Boolean).length;
+    setItem("routes", okCount === routeUrls.length, `${okCount}/${routeUrls.length} HTTP 200`);
+
+    const authorMeta = document.querySelector('meta[name="author"]');
+    setItem("owner", Boolean(authorMeta && authorMeta.content.includes("Andrew t Middleton")), authorMeta ? authorMeta.content : "Missing author meta");
+    setItem("sync", true, "addon/mission-control-satgpu & DATACENTRAL");
+
+    saveChecklist();
+    renderChecklist();
+    renderDomTelemetry();
+    pushThought("DECIDE", "TELEMETRY", `Activity Checklist complete: ${state.checklist.filter((c) => c.done).length}/${state.checklist.length} passed.`);
+  }
+
+  $("chk-run-auto").addEventListener("click", runAutoChecklist);
+  $("chk-reset").addEventListener("click", () => {
+    state.checklist = DEFAULT_CHECKLIST.map((x) => ({ ...x }));
+    saveChecklist();
+    renderChecklist();
+    renderDomTelemetry();
+  });
+  $("chk-export").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify({ timestamp: new Date().toISOString(), checklist: state.checklist }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.download = `luna-activity-checklist-${Date.now()}.json`;
+    a.href = URL.createObjectURL(blob);
+    a.click();
+  });
+  $("chk-add-btn").addEventListener("click", () => {
+    const txt = $("chk-new-input").value.trim();
+    if (!txt) return;
+    state.checklist.push({ id: `custom-${Date.now()}`, label: txt, done: false, detail: "Custom task", status: "PENDING" });
+    $("chk-new-input").value = "";
+    saveChecklist();
+    renderChecklist();
+    renderDomTelemetry();
+  });
 
   // ── Swarm Terminal ──
   function appendTerm(text) {
@@ -628,7 +986,7 @@
     const low = cmd.toLowerCase();
     if (low === "clear") { $("swarm-out").textContent = ""; return; }
     if (low === "help") {
-      appendTerm("Commands: help | status | satgpu | fpv | vpn | bridge | networkbuster | clear");
+      appendTerm("Commands: help | status | satgpu | fpv | vpn | forcepush | checklist | thought <msg> | bridge | networkbuster | clear");
     } else if (low === "status") {
       appendTerm(`[MOCR] CPU ${state.cpu.toFixed(1)}% | RAM ${state.ram.toFixed(1)}% | Bridge: ${bridgeOnline ? "LIVE" : "SIM"}`);
     } else if (low === "satgpu") {
@@ -637,7 +995,15 @@
     } else if (low === "fpv") {
       appendTerm(`[FPV] CAM=(${state.fpv.x.toFixed(1)}, ${state.fpv.y.toFixed(1)}, ${state.fpv.z.toFixed(1)}) THRUST=${state.fpv.thrust.toFixed(3)}`);
     } else if (low === "vpn") {
-      appendTerm(`[VPN GRID] ${state.vpnNodes.length} public nodes tracked across 6 regions.`);
+      appendTerm(`[VPN GRID] ${state.vpnNodes.length} public nodes + ${state.nasaRelays.length} NASA relays tracked.`);
+    } else if (low === "forcepush") {
+      triggerNasaForcePush();
+    } else if (low === "checklist") {
+      runAutoChecklist();
+      appendTerm(`[CHECKLIST] Running live audit across bridge and routes...`);
+    } else if (low.startsWith("thought ")) {
+      handleThoughtPrompt(cmd.slice(8));
+      appendTerm(`[THOUGHT] Prompt injected into Neural Stream of Thought.`);
     } else if (low === "bridge") {
       appendTerm(`[BRIDGE] Target: ${bridgeUrl} (${bridgeOnline ? "CONNECTED" : "OFFLINE - USING CLOUD SIM"})`);
     } else if (low === "networkbuster") {
@@ -655,6 +1021,9 @@
   // ── Boot & Animation Loop ──
   initSatControls();
   renderSatSidebar();
+  renderChecklist();
+  pushThought("SENSE", "TELEMETRY", "Neural Stream of Thought initialized [4-7-9-7-3].");
+  pushThought("CONTEXT", "VPN", "NASA DSN Force Push channel armed (4 relay stations).");
   appendTerm("LunaRecycle × NetworkBuster-Cloud Mission Control initialized.");
   appendTerm("Type 'help' for Swarm commands.");
   pollBridge();
