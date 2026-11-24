@@ -5,7 +5,7 @@
   let bridgeUrl = localStorage.getItem("mocr_bridge_url") || DEFAULT_BRIDGE;
   let bridgeOnline = false;
   let activeTab = "overview";
-  const startTime = Date.now();
+  const startTime = Number(localStorage.getItem("mocr_met_start")) || (localStorage.setItem("mocr_met_start", String(Date.now())), Date.now());
 
   const SATGPU_DEFAULT = [
     { id: "SATGPU-ALPHA", orbit: "LEO 540km", inc: 51.6, gpu: "H100-ORBIT 64TFLOPS", lat: 28.5, lon: -80.6, spd: 0.85, tensor_pct: 48, vram_pct: 61, temp_c: 54.2, downlink_mbps: 440 },

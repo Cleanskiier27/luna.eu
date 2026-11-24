@@ -33,9 +33,33 @@
     article p { color: #98a2be; line-height: 1.6; }
     footer { padding: 28px 0 38px; border-top: 1px solid #252a42; color: #79829e; display: flex; justify-content: space-between; gap: 20px; }
     @media (max-width: 820px) { .hero { grid-template-columns: 1fr; } .visual { max-width: 460px; } .features { grid-template-columns: 1fr; } }
+    /* MOCR hotfix status strip */
+    .mocr-strip { position: sticky; top: 0; z-index: 50; background: rgba(4,10,22,.92); border-bottom: 1px solid #22528f; backdrop-filter: blur(6px); font-family: "Courier New", ui-monospace, monospace; font-size: .78rem; }
+    .mocr-strip .shell { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 0; }
+    .mocr-tag { color: #ffb800; font-weight: 700; letter-spacing: .08em; margin-right: 4px; }
+    .mocr-chip { display: inline-flex; gap: 6px; padding: 3px 9px; border: 1px solid #1e3a66; border-radius: 6px; background: rgba(8,20,43,.85); color: #cfe8ff; white-space: nowrap; }
+    .mocr-chip strong { color: #7ec4ff; }
+    .mocr-chip .ok { color: #00ff66; } .mocr-chip .warn { color: #ffb800; } .mocr-chip .bad { color: #ff5a5a; }
+    .mocr-links { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+    .mocr-links a { padding: 3px 10px; border: 1px solid #2b64a8; border-radius: 6px; text-decoration: none; color: #8eeeff; }
+    .mocr-links a:hover { border-color: #ffb800; color: #ffb800; }
+    @media (max-width: 640px) { .mocr-links { margin-left: 0; } }
   </style>
 </head>
 <body>
+  <div class="mocr-strip" role="region" aria-label="Mission Control status">
+    <div class="shell">
+      <span class="mocr-tag">MOCR</span>
+      <span class="mocr-chip"><strong>SYS</strong><span id="mocr-h-sys" class="warn">CHECKING…</span></span>
+      <span class="mocr-chip"><strong>MET</strong><span id="mocr-h-met">000:00:00:00</span></span>
+      <span class="mocr-chip"><strong>UTC</strong><span id="mocr-h-utc">00:00:00</span></span>
+      <span class="mocr-chip"><strong>CHK</strong><span id="mocr-h-chk">0/0</span></span>
+      <span class="mocr-links">
+        <a href="mission-control-addon.html">Mission Control →</a>
+        <a href="moonbase-worldview.html">Moonbase World View →</a>
+      </span>
+    </div>
+  </div>
   <div class="shell">
     <nav><div class="brand">LunaRecycle</div><div class="navlinks"><a class="pill" href="mission-control-addon.html">Mission Control</a><a class="pill" href="directory.html">Apps and guides</a><a class="pill" href="ai-for-all.html">AI-for-All</a><a class="pill" href="seo-toolkit.html">SEO toolkit</a><a class="pill" href="admin.html">Admin</a><a class="pill" href="launch.html">Launch</a><a class="pill" href="documentation.html">Documentation</a><a class="pill" href="simulation3d.html">3D simulation</a><a class="pill" href="rocket-launch.html">Rocket launch sim</a><a class="pill" href="networkbuster/history.html">History</a><a class="pill" href="html-fetch-tool/">HTML tools</a></div></nav>
     <section class="hero">
@@ -57,6 +81,46 @@
     </section>
     <footer><span>&copy; Andrew t Middleton (cleanskiier27@networkbuster.net) &mdash; NetworkBuster / LunaRecycle.</span><a href="https://github.com/Cleanskiier27/luna.eu/tree/DATACENTRAL">DATACENTRAL repository</a></footer>
   </div>
+  <script>
+  // MOCR hotfix strip: shares localStorage keys with mission-control-addon.js.
+  (() => {
+    "use strict";
+    const $ = id => document.getElementById(id);
+    const pad = (n, w = 2) => String(n).padStart(w, "0");
+    const bridge = localStorage.getItem("mocr_bridge_url") || "http://127.0.0.1:4195";
+    let start = Number(localStorage.getItem("mocr_met_start"));
+    if (!start) { start = Date.now(); localStorage.setItem("mocr_met_start", String(start)); }
+
+    function tick() {
+      $("mocr-h-utc").textContent = new Date().toISOString().slice(11, 19);
+      const s = Math.max(0, Math.floor((Date.now() - start) / 1000));
+      $("mocr-h-met").textContent = `${pad(Math.floor(s / 86400), 3)}:${pad(Math.floor(s % 86400 / 3600))}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`;
+    }
+    function checklist() {
+      try {
+        const list = JSON.parse(localStorage.getItem("mocr_activity_checklist_v1") || "[]");
+        const done = list.filter(i => i && i.done).length;
+        $("mocr-h-chk").textContent = list.length ? `${done}/${list.length}` : "—";
+      } catch { $("mocr-h-chk").textContent = "—"; }
+    }
+    function setSys(text, cls) { const el = $("mocr-h-sys"); el.textContent = text; el.className = cls; }
+    async function sys() {
+      const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 1500);
+      try {
+        const r = await fetch(`${bridge}/api/telemetry`, { signal: ctrl.signal, cache: "no-store" });
+        if (!r.ok) throw new Error(r.status);
+        const d = await r.json();
+        const load = Math.max(Number(d.cpu_pct) || 0, Number(d.ram_pct) || 0);
+        load > 80 ? setSys(`ELEVATED ${load.toFixed(0)}%`, "warn") : setSys("NOMINAL // LIVE", "ok");
+      } catch { setSys("CLOUD SIM", "warn"); }
+      finally { clearTimeout(t); }
+    }
+    tick(); checklist(); sys();
+    setInterval(tick, 1000);
+    setInterval(sys, 5000);
+    window.addEventListener("storage", e => { if (e.key === "mocr_activity_checklist_v1") checklist(); });
+  })();
+  </script>
   <script src="luna-addon-embed.js" defer></script>
 </body>
 </html>
