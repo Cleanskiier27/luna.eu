@@ -12,7 +12,7 @@
   #ctl button{background:rgba(4,16,36,.8);color:#8eeeff;border:1px solid #2b64a8;padding:5px 9px;font:11px "Courier New",monospace;cursor:pointer}
   #ctl button.on,#ctl button:hover{border-color:#ffb800;color:#ffb800}
   #zoom{position:absolute;left:12px;bottom:12px;width:200px}
-  #spec{display:none;position:absolute;right:10px;top:10px;width:300px;max-height:calc(100% - 200px);overflow:auto;background:rgba(3,16,40,.92);border:1px solid #7fdcff;padding:10px 12px;font-size:11px;box-shadow:0 0 18px rgba(127,220,255,.15)}
+  #spec{display:none;position:absolute;left:50%;transform:translateX(-62%);top:10px;width:300px;max-height:calc(100% - 200px);overflow:auto;background:rgba(3,16,40,.92);border:1px solid #7fdcff;padding:10px 12px;font-size:11px;box-shadow:0 0 18px rgba(127,220,255,.15)}
   #spec .st{color:#ffb800;font-weight:bold;margin-bottom:6px;border-bottom:1px solid #22528f;padding-bottom:5px}
   #spec .sr{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-bottom:1px dotted #183d6b}
   #spec .sr span{color:#7fb8e6;white-space:nowrap}
@@ -403,9 +403,9 @@ function drawBlueprintOverlay(cx, cy, s){
   // centre line
   ctx.setLineDash([16, 4, 3, 4]); ctx.lineWidth = 0.7; bpLine(cx, gy + 0.05 * s, cx, gy - ry - 0.04 * s); ctx.setLineDash([]);
   ctx.fillStyle = col("hab"); ctx.fillText("℄", cx + 3, gy - ry - 0.03 * s);
-  ctx.fillText("ELEVATION", cx - r * 0.75, gy - 6); ctx.fillText("SECTION A-A", cx + r * 0.3, gy - 6);
-  ctx.fillText("+0.40 FFL", cx - halfAt(floorY) - 58, floorY + 3);
-  ctx.fillText("UTILITY PLENUM", cx + halfAt(plenY) * 0.2, plenY - 4);
+  ctx.fillText("ELEVATION", cx - r * 0.75, gy + 28); ctx.fillText("SECTION A-A", cx + r * 0.3, gy + 28);
+  ctx.fillText("+0.40 FFL", cx - halfAt(floorY) + 8, floorY - 4);
+  ctx.fillText("PLENUM", cx + 6, plenY - 4);
   // section cut markers A-A
   for (const sx of [cx + r + 0.03 * s]){ ctx.lineWidth = 2; bpLine(sx, gy - ry * 0.55, sx, gy - ry * 0.55 - 14); ctx.font = "bold 11px Courier New"; ctx.fillText("A", sx + 4, gy - ry * 0.55 - 4); ctx.font = "10px Courier New"; }
   // dimensions
@@ -472,7 +472,7 @@ function drawBlueprintOverlay(cx, cy, s){
     ctx.strokeStyle = C; ctx.fillStyle = C;
     bpDim(x + b, y, x + b, y - h, fm(h, s), -0.06 * s);
     bpHits.push({ id: "mast", x: x - 0.05 * s, y: y - h - 0.03 * s, w: 0.08 * s, h: h + 0.03 * s });
-    bpTag("mast", "COMMS / NAV MAST", x + 0.05 * s, y - h * 0.55);
+    bpTag("mast", "COMMS MAST", x + 0.035 * s, y - 0.03 * s);
   }
 
   // ── 05 uplink geometry
