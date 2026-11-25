@@ -73,6 +73,7 @@ jobs:
           cp -a GITREPOVSLOCAL/. "$publish_dir/"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git reset --hard
           git switch --orphan gh-pages
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp -a "$publish_dir/." .
