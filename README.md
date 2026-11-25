@@ -14,6 +14,8 @@ All four are marked **In Progress**. A matching hash identifies the recorded fil
 
 ## Site directory
 
+The [site homepage](GITREPOVSLOCAL/index.html) introduces the CIS Controls v8.1 framework. The previous [LunaRecycle homepage](GITREPOVSLOCAL/lunarecycle.html) remains available. Live CIS audit results are local-only.
+
 To preview Luna locally, run `npm start` from the repository root with npm and
 Python 3 on your PATH (`python` must invoke Python 3). No `npm install` is
 needed. Open <http://127.0.0.1:4190/>. Press Ctrl+C to stop the server.
