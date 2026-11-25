@@ -183,7 +183,6 @@
   <div class="bar">
     <a class="btn primary" href="https://cleanskiier27.github.io/luna.eu" target="_blank" rel="noopener">🌙 luna.eu</a>
     <a class="btn primary" href="#website-addons">Website add-ons</a>
-    <a class="btn primary" id="finalHomepageBtn" href="https://final-iota-six-42.vercel.app" target="_blank" rel="noopener">🚀 Final Live Deployment</a>
     <a class="btn primary" href="index.html">Easy Trade dashboard</a>
     <a class="btn" href="../launch.html">Luna launchpad</a>
     <a class="btn" id="zipDownload" href="https://github.com/Cleanskiier27/Final/archive/refs/heads/bigtree.zip">Download branch ZIP</a>
@@ -428,9 +427,6 @@
     $('kpiStars').textContent = `★ ${repo.stargazers_count ?? 0} · ⑂ ${repo.forks_count ?? 0} · ⊙ ${repo.open_issues_count ?? 0} issues`;
     if (repo.template_repository?.full_name) {
       $('repoTemplate').textContent = `Template: ${repo.template_repository.full_name}`;
-    }
-    if (repo.homepage) {
-      $('finalHomepageBtn').href = repo.homepage;
     }
   }
 
