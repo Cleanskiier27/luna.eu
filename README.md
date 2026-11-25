@@ -26,6 +26,8 @@ For local use, set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` (a Messages API mod
 
 Open [Apps and guides](GITREPOVSLOCAL/directory.html) directly in a browser or select **Apps and guides** on the LunaRecycle homepage. Search titles and descriptions; no server or installation is required. To add a destination, add a list item to the Apps or Guides section of `directory.html` with a site-relative link and a short description. The search picks it up automatically.
 
+The [Easy Trade crypto dashboard](GITREPOVSLOCAL/crypto-dashboard/index.html) runs entirely in the browser. It uses public market feeds when available and stores its paper wallet locally. Real orders, payment connections, and hardware mining are not available on GitHub Pages.
+
 ## 📋 Table of Contents
 
 - [Features](#features)
