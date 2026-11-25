@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive rocket launch simulation with animated flight telemetry.">
+  <title>Rocket Launch Simulation — LunaRecycle</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      background: #070a13;
+      color: #eef2ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 0%, #211b42 0, #0b1020 48%, #070a13 100%);
+    }
+    button, input { font: inherit; }
+    button, a { color: inherit; }
+    .shell { width: min(1240px, calc(100% - 32px)); margin: auto; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 0; }
+    .brand { color: #c7d2fe; font-weight: 800; letter-spacing: -.04em; text-decoration: none; }
+    .back { color: #a5b4fc; text-decoration: none; font-size: .9rem; }
+    .eyebrow { color: #a78bfa; text-transform: uppercase; letter-spacing: .18em; font-size: .72rem; font-weight: 800; }
+    h1 { margin: 8px 0 6px; font-size: clamp(1.7rem, 4vw, 2.5rem); letter-spacing: -.05em; }
+    .intro { margin: 0 0 22px; color: #9da8c5; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 16px; padding-bottom: 28px; }
+    .panel { border: 1px solid #292b49; border-radius: 18px; background: rgba(11, 15, 31, .86); box-shadow: 0 20px 70px #02040b66; }
+    .stage { min-width: 0; overflow: hidden; }
+    .stage-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 18px; border-bottom: 1px solid #202642; }
+    .status { display: flex; align-items: center; gap: 8px; color: #a7f3d0; font-size: .78rem; font-weight: 700; letter-spacing: .08em; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
+    .stage-label { color: #7985a6; font-size: .78rem; }
+    canvas { display: block; width: 100%; aspect-ratio: 1.55; min-height: 300px; max-height: 620px; }
+    .controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 18px; border-top: 1px solid #202642; }
+    .control-button { border: 1px solid #444d79; border-radius: 9px; padding: 9px 14px; background: #181d38; cursor: pointer; }
+    .control-button:hover:not(:disabled) { border-color: #a78bfa; background: #272247; }
+    .control-button:disabled { opacity: .45; cursor: not-allowed; }
+    .primary { border-color: #8b5cf6; background: linear-gradient(135deg, #6d28d9, #4338ca); font-weight: 700; }
+    .speed { display: flex; align-items: center; gap: 10px; margin-left: auto; color: #9da8c5; font-size: .82rem; }
+    input[type="range"] { width: 110px; accent-color: #a78bfa; }
+    aside { display: flex; flex-direction: column; gap: 16px; }
+    .info { padding: 18px; }
+    h2 { margin: 0 0 14px; font-size: .92rem; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .metric { padding: 12px; border: 1px solid #252b48; border-radius: 12px; background: #0c1123; }
+    .metric span { display: block; color: #7e89a8; font-size: .7rem; }
+    .metric strong { display: block; margin-top: 5px; font-size: 1rem; font-variant-numeric: tabular-nums; }
+    .telemetry { display: flex; flex-direction: column; gap: 11px; }
+    .event { display: grid; grid-template-columns: 62px 1fr; gap: 9px; color: #a4afc9; font-size: .76rem; line-height: 1.4; }
+    .event time { color: #717e9f; font-variant-numeric: tabular-nums; }
+    .event p { margin: 0; }
+    .event b { color: #c4b5fd; font-weight: 600; }
+    footer { padding: 4px 0 28px; color: #687493; font-size: .76rem; }
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+      canvas { min-height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="index.html">LunaRecycle</a>
+      <a class="back" href="index.html">← Back to home</a>
+    </header>
+    <main>
+      <div class="eyebrow">Mission control · Launch simulator</div>
+      <h1>Rocket launch</h1>
+      <p class="intro">Start a simulated launch and watch the vehicle climb through the atmosphere.</p>
+      <div class="layout">
+        <section class="panel stage" aria-label="Rocket launch simulation">
+          <div class="stage-head">
+            <span class="status"><span class="dot" id="statusDot"></span><span id="statusText">READY</span></span>
+            <span class="stage-label">LUNA-01 · FLIGHT SIM</span>
+          </div>
+          <canvas id="launchCanvas" aria-label="Animated rocket launch from a launch pad"></canvas>
+          <div class="controls">
+            <button class="control-button primary" id="launchButton" type="button">Start launch</button>
+            <button class="control-button" id="pauseButton" type="button" disabled>Pause</button>
+            <button class="control-button" id="resetButton" type="button">Reset</button>
+            <label class="speed">Simulation speed <input id="speedControl" type="range" min="0.5" max="3" step="0.5" value="1"><output id="speedValue">1x</output></label>
+          </div>
+        </section>
+        <aside>
+          <section class="panel info">
+            <h2>Flight telemetry</h2>
+            <div class="metrics">
+              <div class="metric"><span>ALTITUDE</span><strong id="altitude">0 km</strong></div>
+              <div class="metric"><span>VELOCITY</span><strong id="velocity">0.00 km/s</strong></div>
+              <div class="metric"><span>THRUST</span><strong id="thrust">0 MN</strong></div>
+              <div class="metric"><span>MISSION TIME</span><strong id="missionTime">T-00:05</strong></div>
+            </div>
+          </section>
+          <section class="panel info">
+            <h2>Flight event stream</h2>
+            <div class="telemetry" id="telemetry" aria-live="polite">
+              <div class="event"><time>READY</time><p><b>PAD</b> Vehicle systems standing by</p></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <footer>Illustrative flight simulation only. Telemetry is fictional and not connected to a real launch vehicle.</footer>
+  </div>
+  <script>
+    (() => {
+      const canvas = document.getElementById('launchCanvas');
+      const context = canvas.getContext('2d');
+      const launchButton = document.getElementById('launchButton');
+      const pauseButton = document.getElementById('pauseButton');
+      const resetButton = document.getElementById('resetButton');
+      const speedControl = document.getElementById('speedControl');
+      const speedValue = document.getElementById('speedValue');
+      const telemetry = document.getElementById('telemetry');
+      const readyEvent = telemetry.firstElementChild.cloneNode(true);
+      const statusText = document.getElementById('statusText');
+      const statusDot = document.getElementById('statusDot');
+      const elements = {
+        altitude: document.getElementById('altitude'),
+        velocity: document.getElementById('velocity'),
+        thrust: document.getElementById('thrust'),
+        missionTime: document.getElementById('missionTime')
+      };
+      const events = [
+        ['GUIDANCE', 'Flight computer reports nominal'],
+        ['STAGE', 'Booster separation confirmed'],
+        ['TRACK', 'Vehicle tracking signal acquired'],
+        ['PAYLOAD', 'Payload fairing separation confirmed'],
+        ['ORBIT', 'Target orbit insertion complete']
+      ];
+      let width = 0;
+      let height = 0;
+      let elapsed = 0;
+      let speed = 1;
+      let lastTime = 0;
+      let lastEvent = -1;
+      let phase = 'ready';
+      let paused = false;
+      let frameId;
+      let stars = [];
+
+      function resize() {
+        const bounds = canvas.getBoundingClientRect();
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        width = bounds.width;
+        height = bounds.height;
+        canvas.width = Math.round(width * ratio);
+        canvas.height = Math.round(height * ratio);
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        stars = Array.from({ length: Math.floor(width * height / 3000) }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height * 0.7,
+          r: Math.random() * 1.2 + 0.3,
+          alpha: Math.random() * 0.5 + 0.25
+        }));
+        draw();
+      }
+
+      function addEvent(label, message) {
+        const row = document.createElement('div');
+        row.className = 'event';
+        const time = document.createElement('time');
+        time.textContent = phase === 'countdown' ? `T-${Math.ceil(5 - elapsed)}` : `T+${Math.floor(elapsed - 5)}`;
+        const text = document.createElement('p');
+        const kind = document.createElement('b');
+        kind.textContent = label;
+        text.append(kind, document.createTextNode(` ${message}`));
+        row.append(time, text);
+        telemetry.prepend(row);
+        while (telemetry.children.length > 5) telemetry.lastElementChild.remove();
+      }
+
+      function updatePhase() {
+        const nextPhase = elapsed < 5 ? 'countdown' : elapsed < 50 ? 'ascent' : 'orbit';
+        if (nextPhase === phase) return;
+        phase = nextPhase;
+        if (phase === 'countdown') {
+          statusText.textContent = 'COUNTDOWN';
+          statusDot.style.background = '#fbbf24';
+          addEvent('COUNTDOWN', 'Launch sequence initiated');
+        } else if (phase === 'ascent') {
+          statusText.textContent = 'ASCENT';
+          statusDot.style.background = '#fb923c';
+          addEvent('LIFTOFF', 'Main engines ignited');
+        } else {
+          statusText.textContent = 'ORBIT';
+          statusDot.style.background = '#34d399';
+          addEvent('ORBIT', 'Vehicle reached simulated orbit');
+        }
+      }
+
+      function draw() {
+        if (!width || !height) return;
+        const progress = Math.max(0, Math.min(1, (elapsed - 5) / 45));
+        const sky = context.createLinearGradient(0, 0, 0, height);
+        sky.addColorStop(0, progress > 0.65 ? '#070b1d' : '#101a3c');
+        sky.addColorStop(0.7, progress > 0.65 ? '#111833' : '#6a3e68');
+        sky.addColorStop(1, '#e58a58');
+        context.fillStyle = sky;
+        context.fillRect(0, 0, width, height);
+
+        const starsOpacity = Math.max(0, Math.min(1, (progress - 0.2) * 2.5));
+        for (const star of stars) {
+          context.globalAlpha = star.alpha * starsOpacity;
+          context.fillStyle = '#e0e7ff';
+          context.beginPath();
+          context.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+          context.fill();
+        }
+        context.globalAlpha = 1;
+
+        const groundY = height * (0.82 - progress * 0.12);
+        context.fillStyle = '#141a2b';
+        context.beginPath();
+        context.moveTo(0, groundY);
+        context.lineTo(width * 0.18, groundY - 18);
+        context.lineTo(width * 0.35, groundY + 2);
+        context.lineTo(width * 0.55, groundY - 24);
+        context.lineTo(width * 0.77, groundY - 8);
+        context.lineTo(width, groundY - 28);
+        context.lineTo(width, height);
+        context.lineTo(0, height);
+        context.closePath();
+        context.fill();
+
+        const centerX = width * 0.52;
+        const scale = 1 - progress * 0.34;
+        const rocketWidth = Math.max(9, Math.min(width * 0.04, 25) * scale);
+        const rocketHeight = rocketWidth * 5.2;
+        const rocketBottom = groundY - 8 - progress * height * 0.68;
+        const rocketTop = rocketBottom - rocketHeight;
+        const flameLength = phase === 'ascent' && !paused ? rocketHeight * (0.45 + Math.sin(elapsed * 12) * 0.08) : 0;
+
+        if (progress < 0.12) {
+          context.fillStyle = '#30364b';
+          context.fillRect(centerX - rocketWidth * 2, groundY - rocketHeight * 0.9, rocketWidth * 0.4, rocketHeight * 0.9);
+          context.fillRect(centerX + rocketWidth * 1.6, groundY - rocketHeight * 0.9, rocketWidth * 0.4, rocketHeight * 0.9);
+          context.fillStyle = '#828ba5';
+          context.fillRect(centerX - rocketWidth * 2.3, groundY - rocketHeight * 0.94, rocketWidth * 0.7, 5);
+        }
+
+        context.save();
+        context.translate(centerX, rocketTop);
+        context.beginPath();
+        context.moveTo(0, 0);
+        context.lineTo(rocketWidth * 0.48, rocketHeight * 0.17);
+        context.lineTo(rocketWidth * 0.48, rocketHeight * 0.9);
+        context.lineTo(rocketWidth * 0.9, rocketHeight);
+        context.lineTo(-rocketWidth * 0.9, rocketHeight);
+        context.lineTo(-rocketWidth * 0.48, rocketHeight * 0.9);
+        context.lineTo(-rocketWidth * 0.48, rocketHeight * 0.17);
+        context.closePath();
+        context.fillStyle = '#e2e8f0';
+        context.fill();
+        context.fillStyle = '#8b5cf6';
+        context.beginPath();
+        context.moveTo(0, 0);
+        context.lineTo(rocketWidth * 0.48, rocketHeight * 0.17);
+        context.lineTo(-rocketWidth * 0.48, rocketHeight * 0.17);
+        context.closePath();
+        context.fill();
+        context.fillStyle = '#64748b';
+        context.fillRect(-rocketWidth * 0.27, rocketHeight * 0.65, rocketWidth * 0.54, rocketHeight * 0.18);
+        context.fillStyle = '#7dd3fc';
+        context.beginPath();
+        context.arc(0, rocketHeight * 0.4, rocketWidth * 0.19, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = '#a78bfa';
+        context.beginPath();
+        context.moveTo(-rocketWidth * 0.48, rocketHeight * 0.75);
+        context.lineTo(-rocketWidth * 0.95, rocketHeight);
+        context.lineTo(-rocketWidth * 0.48, rocketHeight * 0.94);
+        context.moveTo(rocketWidth * 0.48, rocketHeight * 0.75);
+        context.lineTo(rocketWidth * 0.95, rocketHeight);
+        context.lineTo(rocketWidth * 0.48, rocketHeight * 0.94);
+        context.fill();
+        if (flameLength > 0) {
+          context.beginPath();
+          context.moveTo(-rocketWidth * 0.3, rocketHeight);
+          context.lineTo(0, rocketHeight + flameLength);
+          context.lineTo(rocketWidth * 0.3, rocketHeight);
+          context.closePath();
+          context.fillStyle = '#fb923c';
+          context.fill();
+          context.beginPath();
+          context.moveTo(-rocketWidth * 0.13, rocketHeight);
+          context.lineTo(0, rocketHeight + flameLength * 0.65);
+          context.lineTo(rocketWidth * 0.13, rocketHeight);
+          context.closePath();
+          context.fillStyle = '#fef3c7';
+          context.fill();
+        }
+        context.restore();
+
+        if (phase === 'ready' || phase === 'countdown') {
+          context.fillStyle = '#f8fafc';
+          context.font = `700 ${Math.max(28, Math.min(width * 0.08, 64))}px system-ui, sans-serif`;
+          context.textAlign = 'center';
+          context.fillText(phase === 'countdown' ? String(Math.max(1, 5 - Math.floor(elapsed))) : 'READY', width * 0.5, height * 0.2);
+          context.textAlign = 'start';
+        } else if (phase === 'ascent') {
+          context.fillStyle = '#dbeafe';
+          context.font = '600 12px system-ui, sans-serif';
+          context.fillText(`ALT ${Math.round(progress * 200)} KM`, 18, 30);
+        }
+      }
+
+      function updateTelemetry() {
+        const ascent = Math.max(0, Math.min(1, (elapsed - 5) / 45));
+        const altitude = Math.round(ascent * 200);
+        const velocity = ascent * 7.8;
+        elements.altitude.textContent = `${altitude} km`;
+        elements.velocity.textContent = `${velocity.toFixed(2)} km/s`;
+        elements.thrust.textContent = phase === 'ascent' ? `${(7.2 * (1 - ascent * 0.25)).toFixed(1)} MN` : '0 MN';
+        elements.missionTime.textContent = elapsed < 5
+          ? `T-00:${String(Math.max(0, 5 - Math.floor(elapsed))).padStart(2, '0')}`
+          : `T+00:${String(Math.floor(elapsed - 5)).padStart(2, '0')}`;
+        const eventIndex = Math.floor(Math.max(0, elapsed - 5) / 9);
+        if (phase === 'ascent' && eventIndex > lastEvent && eventIndex < events.length) {
+          lastEvent = eventIndex;
+          addEvent(events[eventIndex][0], events[eventIndex][1]);
+        }
+      }
+
+      function tick(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        const delta = Math.min((timestamp - lastTime) / 1000, 0.05);
+        lastTime = timestamp;
+        if (!paused && phase !== 'ready' && phase !== 'orbit') {
+          elapsed += delta * speed;
+          updatePhase();
+          updateTelemetry();
+        }
+        draw();
+        frameId = requestAnimationFrame(tick);
+      }
+
+      launchButton.addEventListener('click', () => {
+        if (phase !== 'ready') return;
+        elapsed = 0;
+        phase = 'countdown';
+        statusText.textContent = 'COUNTDOWN';
+        statusDot.style.background = '#fbbf24';
+        launchButton.disabled = true;
+        pauseButton.disabled = false;
+        addEvent('COUNTDOWN', 'Five-second launch sequence started');
+        lastTime = 0;
+      });
+      pauseButton.addEventListener('click', () => {
+        paused = !paused;
+        pauseButton.textContent = paused ? 'Resume' : 'Pause';
+        pauseButton.setAttribute('aria-pressed', String(paused));
+        statusText.textContent = paused ? 'PAUSED' : phase.toUpperCase();
+        lastTime = 0;
+      });
+      resetButton.addEventListener('click', () => {
+        elapsed = 0;
+        phase = 'ready';
+        paused = false;
+        lastEvent = -1;
+        telemetry.replaceChildren(readyEvent.cloneNode(true));
+        launchButton.disabled = false;
+        pauseButton.disabled = true;
+        pauseButton.textContent = 'Pause';
+        pauseButton.setAttribute('aria-pressed', 'false');
+        statusText.textContent = 'READY';
+        statusDot.style.background = '#64748b';
+        elements.altitude.textContent = '0 km';
+        elements.velocity.textContent = '0.00 km/s';
+        elements.thrust.textContent = '0 MN';
+        elements.missionTime.textContent = 'T-00:05';
+        draw();
+      });
+      speedControl.addEventListener('input', () => {
+        speed = Number(speedControl.value);
+        speedValue.textContent = `${speed}x`;
+      });
+      window.addEventListener('resize', resize);
+      window.addEventListener('pagehide', () => cancelAnimationFrame(frameId), { once: true });
+      resize();
+      frameId = requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>

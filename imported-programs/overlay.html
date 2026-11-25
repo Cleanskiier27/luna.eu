@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NetworkBuster AI World - Immersive Command Center with live network monitoring">
+    <title>AI World - NetworkBuster Command Center</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050505;
+            --accent: #00f0ff;
+            --danger: #ff003c;
+            --panel: rgba(10, 10, 30, 0.9);
+        }
+        body, html {
+            margin: 0; padding: 0; height: 100%; overflow: hidden;
+            background: var(--bg); color: #fff; font-family: 'Space Mono', monospace;
+        }
+        .aiworld-container { height: 100vh; width: 100vw; position: relative; }
+        .command-center { display: flex; flex-direction: column; height: 100vh; z-index: 10; position: relative; }
+        
+        .aiworld-header {
+            background: var(--panel); border-bottom: 2px solid var(--accent);
+            padding: 10px 30px; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+        }
+        
+        .camera-grid {
+            flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 5px; padding: 5px; background: #000; overflow-y: auto;
+        }
+        
+        .cam-container { position: relative; background: #111; border: 1px solid #222; aspect-ratio: 16/9; overflow: hidden; }
+        .cam-canvas { width: 100%; height: 100%; object-fit: cover; }
+        .cam-label {
+            position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7);
+            color: var(--accent); padding: 4px 8px; font-size: 11px; border-left: 3px solid var(--accent);
+        }
+        .rec-dot {
+            width: 8px; height: 8px; background: var(--danger); border-radius: 50%;
+            display: inline-block; margin-right: 5px; animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .sidebar-telemetry {
+            position: fixed; right: 20px; top: 100px; width: 240px;
+            background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(0, 240, 255, 0.3);
+            padding: 15px; z-index: 100; pointer-events: none;
+        }
+        .telemetry-item { margin-bottom: 8px; font-size: 10px; }
+        .tel-label { color: #64748b; }
+        .tel-value { color: var(--accent); float: right; }
+
+        .grid-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px; z-index: 1; pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="aiworld-container">
+        <div class="grid-overlay"></div>
+        <div class="command-center">
+            <header class="aiworld-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span style="font-size: 32px;">🤖</span>
+                    <div>
+                        <h1 style="margin:0; font-size: 20px; color: var(--accent);">NETWORK COMMAND CENTER</h1>
+                        <div style="font-size: 10px; color: #00ff00;">● SYSTEMS_NOMINAL // FEED_COUNT: 8</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 25px; align-items: center;">
+                    <div id="clock" style="color: var(--accent); font-size: 18px; font-weight: bold;">00:00:00</div>
+                    <nav style="display: flex; gap: 10px;">
+                        <a href="" style="color: #fff; text-decoration: none; font-size: 12px; border: 1px solid #333; padding: 5px 12px; border-radius: 4px;">HOME</a>
+                        <a href="audio-lab" style="color: #fff; text-decoration: none; font-size: 12px; border: 1px solid #333; padding: 5px 12px; border-radius: 4px;">AUDIO</a>
+                    </nav>
+                </div>
+            </header>
+
+            <main class="camera-grid" id="cameraGrid"></main>
+        </div>
+
+        <div class="sidebar-telemetry">
+            <h4 style="color: var(--danger); font-size: 11px; margin-bottom: 12px; border-bottom: 1px solid var(--danger);">LIVE_TELEMETRY</h4>
+            <div class="telemetry-item"><span class="tel-label">UPLINK</span><span class="tel-value">98.4%</span></div>
+            <div class="telemetry-item"><span class="tel-label">LATENCY</span><span class="tel-value">12ms</span></div>
+            <div class="telemetry-item"><span class="tel-label">SESSION</span><span class="tel-value" id="sessionStatus">IDLE</span></div>
+            <div id="specBars" style="height: 30px; display: flex; align-items: flex-end; gap: 2px; margin-top: 10px;">
+                <div style="flex:1; background:var(--accent); height:20%"></div>
+                <div style="flex:1; background:var(--accent); height:50%"></div>
+                <div style="flex:1; background:var(--accent); height:80%"></div>
+                <div style="flex:1; background:var(--accent); height:40%"></div>
+                <div style="flex:1; background:var(--accent); height:60%"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="audio-bridge.js"></script>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0')+':'+now.getSeconds().toString().padStart(2,'0');
+        }
+        setInterval(updateClock, 1000); updateClock();
+
+        const grid = document.getElementById('cameraGrid');
+        const cams = ['LUNAR_BASE_01', 'LUNAR_BASE_02', 'EXT_SOUTH', 'EXT_NORTH', 'DOCK_A', 'DOCK_B', 'PROCESS_A', 'STORAGE'];
+        
+        cams.forEach(id => {
+            const div = document.createElement('div');
+            div.className = 'cam-container';
+            div.innerHTML = `<canvas class="cam-canvas" id="can_${id}"></canvas><div class="cam-label">CAM::${id}</div><div style="position:absolute; bottom:5px; right:5px; font-size:9px; color:rgba(255,255,255,0.4);"><span class="rec-dot"></span>LIVE // 60 FPS</div>`;
+            grid.appendChild(div);
+            const can = document.getElementById(`can_${id}`);
+            const ctx = can.getContext('2d');
+            can.width = 400; can.height = 225;
+            function draw() {
+                ctx.fillStyle = '#050505'; ctx.fillRect(0,0,400,225);
+                ctx.strokeStyle = 'rgba(0,240,255,0.05)'; ctx.beginPath();
+                for(let x=0; x<400; x+=40){ctx.moveTo(x,0); ctx.lineTo(x,225);}
+                for(let y=0; y<225; y+=40){ctx.moveTo(0,y); ctx.lineTo(400,y);} ctx.stroke();
+                for(let i=0; i<50; i++){ctx.fillStyle=`rgba(0,240,255,${Math.random()*0.1})`; ctx.fillRect(Math.random()*400, Math.random()*225, 1, 1);}
+                const scan = (Date.now()/10)%225; ctx.fillStyle='rgba(255,255,255,0.02)'; ctx.fillRect(0,scan,400,2);
+                requestAnimationFrame(draw);
+            }
+            draw();
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if(window.AudioBridge) {
+                const s = await window.AudioBridge.initSession();
+                if(s) document.getElementById('sessionStatus').textContent = 'SID:'+s.streamId;
+                setInterval(async () => {
+                    const data = await window.AudioBridge.getSpectrum();
+                    if(data && data.success) {
+                        const bars = document.getElementById('specBars').children;
+                        const v = [data.spectrum.bass, data.spectrum.lowMid, data.spectrum.mid, data.spectrum.highMid, data.spectrum.treble];
+                        for(let i=0; i<5; i++){ bars[i].style.height = v[i]+'%'; bars[i].style.opacity = 0.4+(v[i]/150); }
+                    }
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

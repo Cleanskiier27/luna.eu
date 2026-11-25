@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preciseliens — Forex &amp; Crypto Markets Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Preciseliens <span class="accent">Markets</span></h1>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="forex" class="active">Forex Markets</button>
+      <button role="tab" data-tab="overview">Crypto Overview</button>
+      <button role="tab" data-tab="portfolio">Portfolio</button>
+      <button role="tab" data-tab="mining">Mining <span id="tab-mining-dot" class="dot" hidden></span></button>
+      <button role="tab" data-tab="trading">Crypto Trading</button>
+      <button role="tab" data-tab="trail">Money Trail</button>
+      <a href="index.html" class="et-nav-pill">⚡ Easy Trade</a>
+      <a href="launch.html">Luna Launchpad</a>
+      <a href="../cis-framework.html">🛡️ CIS Framework</a>
+      <a href="https://cleanskiier27.github.io/luna.eu" target="_blank" rel="noopener">luna.eu ↗</a>
+    </nav>
+    <div class="status">
+      <select id="currency" aria-label="Base Currency">
+        <option value="usd">USD</option>
+        <option value="eur">EUR</option>
+        <option value="gbp">GBP</option>
+        <option value="jpy">JPY</option>
+        <option value="chf">CHF</option>
+        <option value="cad">CAD</option>
+        <option value="aud">AUD</option>
+        <option value="nzd">NZD</option>
+      </select>
+      <button id="refresh">Refresh</button>
+      <span id="updated">Loading…</span>
+    </div>
+  </header>
+
+  <div class="temp-banner">Browser edition: public market feeds and paper trades only. Hardware mining, payment connections and Dataform require the desktop server.</div>
+
+  <p id="error" class="error banner" hidden></p>
+
+  <!-- ================= FOREX MARKETS ================= -->
+  <main class="tab-panel" data-panel="forex">
+    <section class="card full" id="fx-sessions-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Real Forex Markets <span id="fx-market-state" class="pill">—</span></h2>
+        <span id="fx-utc-clock" class="pill fx-mono">UTC —</span>
+        <span id="fx-source-pill" class="pill">ECB + ExchangeRate-API</span>
+        <button id="fx-refresh">Refresh FX</button>
+      </div>
+      <div class="fx-sessions" id="fx-sessions"></div>
+      <div class="stats-grid" style="margin-bottom:0">
+        <div class="stat"><span class="label">EUR/USD Benchmark</span><span id="fx-kpi-eurusd" class="fx-mono">—</span><span id="fx-kpi-eurusd-sub" class="sub"></span></div>
+        <div class="stat"><span class="label">USD/JPY Benchmark</span><span id="fx-kpi-usdjpy" class="fx-mono">—</span><span id="fx-kpi-usdjpy-sub" class="sub"></span></div>
+        <div class="stat"><span class="label">GBP/USD Benchmark</span><span id="fx-kpi-gbpusd" class="fx-mono">—</span><span id="fx-kpi-gbpusd-sub" class="sub"></span></div>
+        <div class="stat"><span class="label">Strongest / Weakest (7D)</span><span id="fx-kpi-strength">—</span><span id="fx-kpi-date" class="sub muted"></span></div>
+      </div>
+    </section>
+
+    <section class="card" id="fx-pairs-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Live FX Pairs</h2>
+        <div class="seg" id="fx-cat-filter" role="group" aria-label="Pair category">
+          <button data-cat="all" class="active">All</button>
+          <button data-cat="major">Majors</button>
+          <button data-cat="cross">Crosses</button>
+          <button data-cat="exotic">Exotics</button>
+        </div>
+        <input id="fx-search" placeholder="Search pair (e.g. EUR/USD)…" aria-label="Search forex pairs" style="max-width:190px" />
+      </div>
+      <div class="scroll-table">
+        <table class="selectable">
+          <thead>
+            <tr>
+              <th>Pair</th>
+              <th>Type</th>
+              <th>Bid</th>
+              <th>Ask</th>
+              <th>Spread</th>
+              <th>1D (pips)</th>
+              <th>30D</th>
+              <th>Signal</th>
+            </tr>
+          </thead>
+          <tbody id="fx-pairs-body">
+            <tr><td colspan="8" class="muted">Loading real Forex rates…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="fx-ticket-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">FX Order Ticket &amp; Pip Calculator <span id="fx-ticket-pair" class="pill">EUR/USD</span></h2>
+        <span id="fx-oanda-pill" class="pill">Paper FX</span>
+      </div>
+      <div class="fx-quote-box">
+        <div class="fx-quote sell">
+          <span class="label">SELL (Bid)</span>
+          <span id="fx-bid" class="big fx-mono down">—</span>
+          <span id="fx-pip-size" class="muted small-text">1 pip = 0.0001</span>
+        </div>
+        <div class="fx-quote buy">
+          <span class="label">BUY (Ask)</span>
+          <span id="fx-ask" class="big fx-mono up">—</span>
+          <span id="fx-spread-val" class="muted small-text">Spread: — pips</span>
+        </div>
+      </div>
+      <div class="fx-lot-presets">
+        <span class="muted small-text" style="align-self:center">Lot preset:</span>
+        <button type="button" data-lot="0.01">Micro 0.01 (1k)</button>
+        <button type="button" data-lot="0.10">Mini 0.10 (10k)</button>
+        <button type="button" data-lot="1.00">Standard 1.00 (100k)</button>
+      </div>
+      <form id="fx-order-form">
+        <div class="seg side" id="fx-side-seg" role="group" aria-label="FX Side">
+          <button type="button" data-fx-side="buy" class="active buy">Buy / Long</button>
+          <button type="button" data-fx-side="sell" class="sell">Sell / Short</button>
+        </div>
+        <input id="fx-lots" type="number" step="0.01" min="0.01" value="0.10" placeholder="Lots" aria-label="Lot size" required />
+        <select id="fx-leverage" aria-label="Leverage">
+          <option value="1">1:1</option>
+          <option value="10">1:10</option>
+          <option value="20">1:20</option>
+          <option value="30" selected>1:30</option>
+          <option value="50">1:50</option>
+        </select>
+        <input id="fx-sl-pips" type="number" step="1" min="0" value="25" placeholder="SL (pips)" aria-label="Stop loss pips" />
+        <input id="fx-tp-pips" type="number" step="1" min="0" value="50" placeholder="TP (pips)" aria-label="Take profit pips" />
+        <button type="submit" id="fx-submit" class="primary">Buy EUR/USD</button>
+      </form>
+      <div class="fx-calc-grid">
+        <div class="stat"><span class="label">Units</span><span id="fx-calc-units" class="fx-mono">10,000</span></div>
+        <div class="stat"><span class="label">Pip Value (USD)</span><span id="fx-calc-pipval" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">Margin Required</span><span id="fx-calc-margin" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">SL Risk / R:R</span><span id="fx-calc-rr" class="fx-mono">—</span></div>
+      </div>
+      <p id="fx-order-msg" class="muted small-text" style="margin:0.4rem 0 0"></p>
+    </section>
+
+    <section class="card full" id="fx-chart-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0" id="fx-chart-title">EUR/USD — Real Historical Rate Chart (ECB)</h2>
+        <label class="inline" style="margin:0"><input id="fx-sma-toggle" type="checkbox" checked style="width:auto" /> SMA 7 / 20</label>
+        <div class="seg" id="fx-ranges" role="group" aria-label="FX chart range">
+          <button data-fx-days="10">1W</button>
+          <button data-fx-days="35" class="active">1M</button>
+          <button data-fx-days="95">3M</button>
+          <button data-fx-days="365">1Y</button>
+        </div>
+      </div>
+      <div class="stats-grid small" style="margin-top:0">
+        <div class="stat"><span class="label">Period High</span><span id="fx-stat-high" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">Period Low</span><span id="fx-stat-low" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">Period Change</span><span id="fx-stat-chg" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">Avg Daily Move (ADR)</span><span id="fx-stat-adr" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">RSI (14D)</span><span id="fx-stat-rsi" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">Signal</span><span id="fx-stat-verdict">—</span></div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="fx-chart" height="280"></canvas>
+        <div id="fx-chart-tip" class="tip" hidden></div>
+        <p id="fx-chart-msg" class="muted center" hidden></p>
+      </div>
+    </section>
+
+    <section class="card" id="fx-strength-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Currency Strength Meter (8 Majors)</h2>
+        <div class="seg" id="fx-strength-window">
+          <button data-sw="7" class="active">7D</button>
+          <button data-sw="30">30D</button>
+        </div>
+      </div>
+      <canvas id="fx-strength-chart" height="240"></canvas>
+      <p class="muted small-text" style="margin:0.4rem 0 0">Equal-weighted relative performance across all 7 major cross pairs for each currency.</p>
+    </section>
+
+    <section class="card" id="fx-matrix-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Major Cross-Rate Matrix</h2>
+        <span class="muted small-text">Click any rate to chart &amp; trade</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="fx-matrix" id="fx-matrix"></table>
+      </div>
+    </section>
+
+    <section class="card full" id="fx-account-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Forex Paper Margin Account <span id="fx-margin-pill" class="pill">—</span></h2>
+        <button id="fx-account-reset">Reset $100k Account</button>
+      </div>
+      <div class="stats-grid small" style="margin-top:0">
+        <div class="stat"><span class="label">Balance</span><span id="fx-acct-balance" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">Equity</span><span id="fx-acct-equity" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">Floating P&amp;L</span><span id="fx-acct-pnl" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">Margin Used</span><span id="fx-acct-used" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">Free Margin</span><span id="fx-acct-free" class="fx-mono">—</span></div>
+        <div class="stat"><span class="label">Realized P&amp;L</span><span id="fx-acct-realized" class="fx-mono">—</span></div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Opened</th><th>Pair</th><th>Side</th><th>Lots</th><th>Entry</th><th>Current</th><th>SL / TP</th><th>P&amp;L (Pips)</th><th>P&amp;L (USD)</th><th></th></tr>
+        </thead>
+        <tbody id="fx-positions-body">
+          <tr><td colspan="10" class="muted">No open FX positions. Place a paper trade above.</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- ================= OVERVIEW ================= -->
+  <main class="tab-panel" data-panel="overview">
+    <section class="card full" id="status-card">
+      <h2>Market Status <span id="market-mood" class="pill">—</span></h2>
+      <div class="stats-grid">
+        <div class="stat"><span class="label">Total market cap</span><span id="stat-mcap">—</span><span id="stat-mcap-change" class="sub"></span></div>
+        <div class="stat"><span class="label">24h volume</span><span id="stat-volume">—</span></div>
+        <div class="stat"><span class="label">BTC dominance</span><span id="stat-btc">—</span>
+          <div class="meter"><div id="meter-btc"></div></div></div>
+        <div class="stat"><span class="label">Gainers vs losers (top 50)</span><span id="stat-breadth">—</span>
+          <div class="meter split"><div id="meter-gainers"></div></div></div>
+      </div>
+    </section>
+
+    <section class="card full">
+      <h2>Currency Levels <span class="pill">24h range gauge · 7d trend · distance from all-time high</span></h2>
+      <div id="levels" class="levels"></div>
+    </section>
+
+    <section class="card">
+      <h3>Top movers (24h)</h3>
+      <canvas id="movers-chart" height="220"></canvas>
+    </section>
+
+    <section class="card">
+      <h3>Market cap share</h3>
+      <div class="donut-wrap">
+        <canvas id="share-chart" width="220" height="220"></canvas>
+        <ul id="share-legend" class="legend"></ul>
+      </div>
+    </section>
+
+    <section class="card" id="market-card">
+      <div class="market-header">
+        <h2>Market — Top 50</h2>
+        <input id="search" placeholder="Search coins…" aria-label="Search coins" />
+      </div>
+      <div class="scroll-table">
+        <table class="selectable">
+          <thead>
+            <tr><th>#</th><th>Coin</th><th>Price</th><th>24h</th><th>Market cap</th><th>7d</th></tr>
+          </thead>
+          <tbody id="market"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="detail-card">
+      <p id="detail-empty" class="muted">Select any coin to see its stats and chart.</p>
+      <div id="detail" hidden>
+        <div class="detail-head">
+          <div class="coin big"><img id="detail-img" alt="" /><div><h2 id="detail-name"></h2><span id="detail-sym" class="sym"></span></div></div>
+          <div class="detail-price"><span id="detail-price"></span><span id="detail-change"></span></div>
+        </div>
+        <div class="stats-grid small">
+          <div class="stat"><span class="label">Market cap</span><span id="d-mcap"></span></div>
+          <div class="stat"><span class="label">24h volume</span><span id="d-vol"></span></div>
+          <div class="stat"><span class="label">24h range</span><span id="d-range"></span>
+            <div class="meter"><div id="d-range-meter"></div></div></div>
+          <div class="stat"><span class="label">All-time high</span><span id="d-ath"></span><span id="d-ath-pct" class="sub"></span></div>
+          <div class="stat"><span class="label">Circulating supply</span><span id="d-supply"></span></div>
+          <div class="stat"><span class="label">Rank</span><span id="d-rank"></span></div>
+        </div>
+        <div class="row-buttons">
+          <button id="detail-add">Add to portfolio</button>
+          <button id="detail-trade" class="primary">Trade</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card full" id="big-chart-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0" id="big-chart-title">Price chart</h2>
+        <div class="seg" role="group" aria-label="Chart mode">
+          <button data-mode="price" class="active">Selected coin</button>
+          <button data-mode="compare">Compare top coins</button>
+        </div>
+        <div class="ranges seg" role="group" aria-label="Chart range">
+          <button data-days="1">1D</button>
+          <button data-days="7" class="active">7D</button>
+          <button data-days="30">30D</button>
+          <button data-days="90">90D</button>
+          <button data-days="365">1Y</button>
+        </div>
+      </div>
+      <ul id="compare-legend" class="legend inline-legend" hidden></ul>
+      <div class="chart-wrap">
+        <canvas id="price-chart" height="300"></canvas>
+        <div id="chart-tip" class="tip" hidden></div>
+        <p id="chart-msg" class="muted center" hidden></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= PORTFOLIO ================= -->
+  <main class="tab-panel" data-panel="portfolio">
+    <section class="card full" id="portfolio-card">
+      <h2>Portfolio</h2>
+      <div class="totals">
+        <div><span class="label">Total value</span><span id="total-value">—</span></div>
+        <div><span class="label">24h change</span><span id="total-change">—</span></div>
+      </div>
+      <form id="holding-form">
+        <input id="holding-coin" list="coin-list" placeholder="Coin (e.g. bitcoin)" required />
+        <datalist id="coin-list"></datalist>
+        <input id="holding-amount" type="number" step="any" min="0" placeholder="Amount" required />
+        <button type="submit">Add / Update</button>
+      </form>
+      <div class="donut-wrap" id="allocation-wrap" hidden>
+        <canvas id="allocation-chart" width="200" height="200"></canvas>
+        <ul id="allocation-legend" class="legend"></ul>
+      </div>
+      <div class="visuals" id="positions-visuals" hidden>
+        <div>
+          <h3>Positions value — last 7 days</h3>
+          <canvas id="positions-chart" height="230"></canvas>
+          <div id="positions-tip" class="tip" hidden></div>
+        </div>
+        <div>
+          <h3>Position sizes</h3>
+          <canvas id="positions-bars" height="230"></canvas>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Coin</th><th>Amount</th><th>Price</th><th>Value</th><th>24h</th><th></th></tr>
+        </thead>
+        <tbody id="holdings"></tbody>
+      </table>
+      <p id="empty-portfolio" class="muted">No holdings yet. Add a coin above, or use "Sync to portfolio" on the Transactions page.</p>
+    </section>
+  </main>
+
+  <!-- ================= MINING ================= -->
+  <main class="tab-panel" data-panel="mining">
+
+
+    <section class="card full" id="miner-card">
+      <h2>Mining Profit Estimator <span id="miner-pill" class="pill">—</span></h2>
+      <div class="stats-grid">
+        <div class="stat"><span class="label">Holdings value</span><span id="m-holdings">—</span></div>
+        <div class="stat"><span class="label">Mining revenue / day</span><span id="m-revenue">—</span></div>
+        <div class="stat"><span class="label">Power cost / day</span><span id="m-cost">—</span></div>
+        <div class="stat"><span class="label">Net profit / day</span><span id="m-profit">—</span><span id="m-month" class="sub muted"></span></div>
+        <div class="stat"><span class="label">Combined (holdings + 30d mining)</span><span id="m-combined">—</span></div>
+      </div>
+      <form id="rig-form">
+        <input id="rig-name" placeholder="Rig name (e.g. Laptop)" required />
+        <input id="rig-coin" list="coin-list" placeholder="Coin mined (e.g. monero)" required />
+        <input id="rig-rate" type="number" step="any" min="0" placeholder="Coins mined / day" required />
+        <input id="rig-watts" type="number" step="any" min="0" placeholder="Power (W)" required />
+        <button type="submit">Add / Update rig</button>
+      </form>
+      <label class="inline">Electricity cost
+        <input id="power-price" type="number" step="any" min="0" value="0.12" /> per kWh
+      </label>
+      <div class="visuals" id="miner-visuals" hidden>
+        <div>
+          <h3>Revenue vs power cost per day</h3>
+          <canvas id="rig-chart" height="220"></canvas>
+        </div>
+        <div>
+          <h3>Revenue share by rig</h3>
+          <div class="donut-wrap">
+            <canvas id="rig-share" width="200" height="200"></canvas>
+            <ul id="rig-legend" class="legend"></ul>
+          </div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Rig</th><th>Coin</th><th>Coins/day</th><th>Power</th><th>Revenue/day</th><th>Cost/day</th><th>Profit/day</th><th></th></tr>
+        </thead>
+        <tbody id="rigs"></tbody>
+      </table>
+      <p id="empty-rigs" class="muted">No rigs yet. Add one above using your pool's daily payout estimate.</p>
+    </section>
+  </main>
+
+  <!-- ================= TRADING ================= -->
+  <main class="tab-panel" data-panel="trading">
+    <section class="card" id="ticket-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Order Ticket</h2>
+        <div class="seg" role="group" aria-label="Trading mode">
+          <button data-trade-mode="paper" class="active">Paper</button>
+          <button data-trade-mode="live">Live</button>
+        </div>
+      </div>
+      <div id="live-controls" hidden>
+        <label class="inline">Exchange <select id="trade-exchange"></select></label>
+        <p id="live-msg" class="muted"></p>
+      </div>
+      <div class="ticker">
+        <div class="coin big"><img id="t-img" alt="" /><div><h2 id="t-name">—</h2><span id="t-sym" class="sym"></span></div></div>
+        <div class="detail-price"><span id="t-price" class="flash">—</span><span id="t-feed" class="sub muted">connecting…</span></div>
+      </div>
+      <div class="market-nav" role="group" aria-label="Market navigation">
+        <button id="t-back" title="Back to the previous market you viewed" disabled>↩ Back</button>
+        <button id="t-prev" title="Previous market ( [ )">◀ Prev</button>
+        <span id="t-pos" class="muted small-text">—</span>
+        <button id="t-next" title="Next market ( ] )">Next ▶</button>
+        <button id="t-reconnect" class="grow-left" title="Reconnect the live price feed">⟳ Refresh feed</button>
+      </div>
+      <canvas id="tick-chart" height="120"></canvas>
+      <form id="trade-form">
+        <input id="t-coin" list="coin-list" placeholder="Coin (e.g. bitcoin)" required aria-label="Coin" />
+        <div class="seg side" role="group" aria-label="Side">
+          <button type="button" data-side="buy" class="active buy">Buy</button>
+          <button type="button" data-side="sell" class="sell">Sell</button>
+        </div>
+        <select id="t-type" aria-label="Order type">
+          <option value="market">Market</option>
+          <option value="limit">Limit</option>
+        </select>
+        <input id="t-amount" type="number" step="any" min="0" placeholder="Amount (coin)" required aria-label="Amount in coin" />
+        <input id="t-usd" type="number" step="any" min="0" placeholder="≈ Value" aria-label="Value in currency" />
+        <input id="t-limit" type="number" step="any" min="0" placeholder="Limit price" hidden aria-label="Limit price" />
+        <button type="submit" id="t-submit" class="primary">Buy</button>
+      </form>
+      <p id="t-msg" class="muted"></p>
+    </section>
+
+    <section class="card" id="account-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0" id="acct-title">Paper Account</h2>
+        <button id="paper-reset" title="Reset paper account to starting cash">Reset paper</button>
+        <button id="acct-refresh">Refresh</button>
+      </div>
+      <div class="stats-grid small">
+        <div class="stat"><span class="label">Equity</span><span id="acct-equity">—</span></div>
+        <div class="stat"><span class="label">Cash</span><span id="acct-cash">—</span></div>
+        <div class="stat"><span class="label">P&amp;L</span><span id="acct-pnl">—</span></div>
+      </div>
+      <canvas id="acct-bars" height="160" hidden></canvas>
+      <table>
+        <thead><tr><th>#</th><th>Asset</th><th>Quantity</th><th>Value</th></tr></thead>
+        <tbody id="acct-balances"></tbody>
+      </table>
+      <h3 style="margin-top:1rem">Open orders</h3>
+      <table>
+        <thead><tr><th>Placed</th><th>Coin</th><th>Side</th><th>Amount</th><th>Limit</th><th></th></tr></thead>
+        <tbody id="open-orders"></tbody>
+      </table>
+    </section>
+
+    <section class="card full" id="signal-card">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Buy / Sell Signal <span id="sig-coin" class="pill">—</span></h2>
+        <span id="sig-verdict" class="verdict">—</span>
+      </div>
+      <div class="signal-grid">
+        <div>
+          <h3>Live buy/sell ratio <span class="muted" id="ratio-window">(last 5 min)</span></h3>
+          <canvas id="ratio-gauge" width="260" height="150"></canvas>
+          <div class="ratio-bar"><div id="ratio-buy"></div></div>
+          <div class="ratio-labels"><span class="up" id="ratio-buy-label">Buys —</span><span class="down" id="ratio-sell-label">Sells —</span></div>
+          <p class="muted small-text" id="ratio-note">Aggressive (taker) buys vs sells from the Coinbase public trade feed.</p>
+        </div>
+        <div>
+          <h3>Signal breakdown</h3>
+          <table class="signals">
+            <thead><tr><th>Signal</th><th>Reading</th><th>Lean</th></tr></thead>
+            <tbody id="sig-rows"></tbody>
+          </table>
+        </div>
+        <div>
+          <h3>Composite score</h3>
+          <canvas id="score-meter" width="260" height="150"></canvas>
+          <p id="sig-summary" class="muted"></p>
+        </div>
+      </div>
+      <p class="muted small-text">Signals are automated indicators, not financial advice. They can be wrong. Never trade more than you can afford to lose.</p>
+    </section>
+
+    <section class="card full">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Trade History</h2>
+        <select id="trade-filter" aria-label="Filter trades">
+          <option value="">All</option>
+          <option value="paper">Paper</option>
+          <option value="live" disabled>Live</option>
+        </select>
+      </div>
+      <table>
+        <thead><tr><th>Date</th><th>Mode</th><th>Coin</th><th>Side</th><th>Type</th><th>Amount</th><th>Price</th><th>Value</th><th>Status</th></tr></thead>
+        <tbody id="trade-history"></tbody>
+      </table>
+      <p id="empty-trades" class="muted">No trades yet.</p>
+    </section>
+  </main>
+
+  <!-- ================= MONEY TRAIL ================= -->
+  <main class="tab-panel" data-panel="trail">
+    <section class="card full">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Money Trail <span id="trail-pill" class="pill">—</span></h2>
+        <select id="trail-days" aria-label="Range">
+          <option value="30">30 days</option>
+          <option value="90">90 days</option>
+          <option value="365" selected>1 year</option>
+          <option value="0">All time</option>
+        </select>
+        <button id="trail-refresh">Refresh</button>
+        <button id="trail-export">Export CSV</button>
+      </div>
+      <div class="chips" id="trail-sources"></div>
+      <div class="stats-grid" style="margin-top:1rem">
+        <div class="stat"><span class="label">Money in</span><span id="trail-in" class="up">—</span></div>
+        <div class="stat"><span class="label">Money out</span><span id="trail-out" class="down">—</span></div>
+        <div class="stat"><span class="label">Net flow</span><span id="trail-net">—</span>
+          <div class="meter split"><div id="trail-meter"></div></div></div>
+        <div class="stat"><span class="label">Entries</span><span id="trail-count">—</span><span id="trail-span" class="sub muted"></span></div>
+      </div>
+      <div class="visuals">
+        <div>
+          <h3>Cumulative net flow</h3>
+          <canvas id="trail-chart" height="220"></canvas>
+        </div>
+        <div>
+          <h3>By source</h3>
+          <canvas id="trail-sources-chart" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="card full">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Timeline</h2>
+        <input id="trail-search" placeholder="Search descriptions…" aria-label="Search money trail" />
+      </div>
+      <table>
+        <thead><tr><th>Date</th><th>Source</th><th>Description</th><th>In</th><th>Out</th><th>Running net</th></tr></thead>
+        <tbody id="trail-list"></tbody>
+      </table>
+      <p id="trail-empty" class="muted">Nothing yet. Trades, ledger transactions, mining payouts and PayPal activity will appear here.</p>
+    </section>
+  </main>
+
+
+
+  <footer class="muted">
+    Forex: <a href="https://www.frankfurter.app" target="_blank" rel="noopener">ECB (Frankfurter)</a> &amp; <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a> (optional OANDA v20) ·
+    Crypto: <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a> &amp; Coinbase public feed ·
+    <a href="https://cleanskiier27.github.io/luna.eu" target="_blank" rel="noopener">luna.eu</a> ·
+    <a href="launch.html">LunaRecycle Live Launchpad</a> ·
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="forex.js"></script>
+  <script src="trading.js"></script>
+  <script src="trail.js"></script>
+</body>
+</html>

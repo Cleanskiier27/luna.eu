@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live session player | LunaRecycle</title>
+  <style>
+    :root { color-scheme: dark; font: 1rem/1.5 system-ui,sans-serif; background: #101927; color: #eef4ff; }
+    main { max-width: 62rem; margin: auto; padding: 1rem; }
+    video { display: block; width: 100%; aspect-ratio: 16/9; background: #000; margin: 1rem 0; }
+    a { color: #91ddff; } button { font: inherit; padding: .5rem 1rem; }
+    #worldview img { width: 100%; height: auto; margin-top: 1rem; }
+  </style>
+</head>
+<body><main>
+  <a href="directory.html">Apps and guides</a>
+  <h1>Live session player</h1>
+  <details id="worldview">
+    <summary>NASA Worldview satellite imagery</summary>
+    <p>View a daily Terra MODIS true-color mosaic from NASA GIBS. This is satellite imagery, not live drone footage. Coverage can be incomplete.</p>
+    <label>Observation date (UTC) <input id="observation" type="date" min="2000-02-24" required></label>
+    <p id="image-status" role="status"></p>
+    <img id="earth" alt="Global Terra MODIS true-color mosaic" hidden>
+    <a id="nasa-link" href="https://worldview.earthdata.nasa.gov/" target="_blank" rel="noreferrer">Explore in NASA Worldview</a>
+  </details>
+  <p>Choose the tab or window showing your session, not this player. Video stays on this device. No audio, recording, or broadcast.</p>
+  <button id="start" type="button">Choose session</button>
+  <button id="stop" type="button" disabled>Stop sharing</button>
+  <p id="status" role="status">No session selected.</p>
+  <video id="preview" aria-label="Live session preview" controls muted playsinline></video>
+</main>
+<script>
+  const worldview = document.querySelector('#worldview');
+  const observation = document.querySelector('#observation');
+  const earth = document.querySelector('#earth');
+  const imageStatus = document.querySelector('#image-status');
+  const nasaLink = document.querySelector('#nasa-link');
+  observation.max = new Date().toISOString().slice(0, 10);
+  observation.value = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  function loadWorldview() {
+    earth.hidden = true;
+    earth.removeAttribute('src');
+    const date = observation.value;
+    if (!observation.validity.valid) {
+      imageStatus.textContent = 'Choose a date in the available range.';
+      return;
+    }
+    const params = new URLSearchParams({SERVICE:'WMS', VERSION:'1.1.1', REQUEST:'GetMap',
+      LAYERS:'MODIS_Terra_CorrectedReflectance_TrueColor', STYLES:'', SRS:'EPSG:4326',
+      BBOX:'-180,-90,180,90', WIDTH:'1024', HEIGHT:'512', FORMAT:'image/jpeg', TIME:date});
+    nasaLink.href = `https://worldview.earthdata.nasa.gov/?t=${date}`;
+    imageStatus.textContent = `Loading imagery for ${date}...`;
+    earth.alt = `Global Terra MODIS true-color mosaic for ${date} UTC`;
+    earth.src = `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?${params}`;
+  }
+  earth.onload = () => { earth.hidden = false; imageStatus.textContent = earth.alt; };
+  earth.onerror = () => { imageStatus.textContent = 'Imagery unavailable. Try another date or open NASA Worldview.'; };
+  worldview.ontoggle = () => { if (worldview.open && !earth.hasAttribute('src')) loadWorldview(); };
+  observation.onchange = loadWorldview;
+  if (location.hash === '#worldview') worldview.open = true;
+  const start = document.querySelector('#start');
+  const stop = document.querySelector('#stop');
+  const statusLine = document.querySelector('#status');
+  const preview = document.querySelector('#preview');
+  function finish(message) {
+    const stream = preview.srcObject;
+    preview.srcObject = null;
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    stop.disabled = true;
+    start.disabled = false;
+    statusLine.textContent = message;
+  }
+  if (!navigator.mediaDevices?.getDisplayMedia) {
+    start.disabled = true;
+    statusLine.textContent = 'Screen capture is unavailable here. Open this page in a desktop browser over HTTPS or localhost.';
+  }
+  start.onclick = async () => {
+    start.disabled = true;
+    statusLine.textContent = 'Waiting for your selection...';
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: false});
+      preview.srcObject = stream;
+      stream.getVideoTracks()[0].addEventListener('ended', () => {
+        if (preview.srcObject === stream) finish('Sharing ended.');
+      }, {once: true});
+      await preview.play();
+      if (preview.srcObject !== stream) return;
+      stop.disabled = false;
+      statusLine.textContent = 'Showing your selected session locally.';
+    } catch (error) {
+      finish(error.name === 'NotAllowedError' ? 'Sharing was canceled or blocked by the browser.' : `Unable to play the session: ${error.name}.`);
+    }
+  };
+  stop.onclick = () => finish('Sharing stopped.');
+  window.addEventListener('pagehide', () => { if (preview.srcObject) finish('Sharing stopped.'); });
+</script>
+</body></html>

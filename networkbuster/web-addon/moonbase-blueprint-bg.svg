@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <pattern id="minorGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#0d2547" stroke-width="0.7" />
+    </pattern>
+    <pattern id="majorGrid" width="120" height="120" patternUnits="userSpaceOnUse">
+      <rect width="120" height="120" fill="url(#minorGrid)" />
+      <path d="M 120 0 L 0 0 0 120" fill="none" stroke="#163c6e" stroke-width="1.2" />
+    </pattern>
+    <radialGradient id="domeGlow" cx="50%" cy="55%" r="50%">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#040d1d" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="amberHot" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffb800" stop-opacity="0.28" />
+      <stop offset="100%" stop-color="#ffb800" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="worldView" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#1e90ff" stop-opacity="0.7" />
+      <stop offset="100%" stop-color="#000044" stop-opacity="0.9" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#040d1d" />
+  <rect width="1920" height="1080" fill="url(#majorGrid)" />
+  <circle cx="960" cy="560" r="520" fill="url(#domeGlow)" />
+
+  <!-- Outer engineering border -->
+  <rect x="28" y="28" width="1864" height="1024" fill="none" stroke="#22528f" stroke-width="2" />
+  <rect x="36" y="36" width="1848" height="1008" fill="none" stroke="#163c6e" stroke-width="1" stroke-dasharray="8 6" />
+
+  <!-- Highlighted Build-Sequence Glow Zones -->
+  <rect x="236" y="596" width="258" height="88" rx="10" fill="url(#amberHot)" stroke="#ffb800" stroke-width="1.2" stroke-dasharray="6 4" opacity="0.7" />
+  <rect x="510" y="644" width="186" height="94" rx="8" fill="#00e5ff" fill-opacity="0.09" stroke="#00e5ff" stroke-width="1.2" stroke-dasharray="6 4" opacity="0.75" />
+  <ellipse cx="960" cy="610" rx="285" ry="145" fill="#00ff66" fill-opacity="0.06" stroke="#00ff66" stroke-width="1.2" stroke-dasharray="6 5" opacity="0.72" />
+  <rect x="1225" y="425" width="94" height="312" rx="8" fill="#c084fc" fill-opacity="0.08" stroke="#c084fc" stroke-width="1.2" stroke-dasharray="6 4" opacity="0.75" />
+  <circle cx="1450" cy="270" r="120" fill="url(#amberHot)" stroke="#ffb800" stroke-width="1.2" stroke-dasharray="5 5" opacity="0.75" />
+
+  <!-- Orbital SatGPU Ring Arcs -->
+  <ellipse cx="960" cy="560" rx="760" ry="260" fill="none" stroke="#2f6fb8" stroke-width="1.4" stroke-dasharray="10 8" opacity="0.55" />
+  <ellipse cx="960" cy="560" rx="640" ry="190" fill="none" stroke="#00e5ff" stroke-width="1" stroke-dasharray="4 6" opacity="0.45" />
+
+  <!-- Lunar Surface Datum Line -->
+  <line x1="120" y1="730" x2="1800" y2="730" stroke="#38bdf8" stroke-width="1.8" opacity="0.7" />
+  <line x1="120" y1="744" x2="1800" y2="744" stroke="#1e4d82" stroke-width="1" stroke-dasharray="6 6" />
+
+  <!-- BP-01: Lunar Habitat & Command Dome -->
+  <g stroke="#38bdf8" fill="none" opacity="0.82">
+    <path d="M 690 730 A 270 250 0 0 1 1230 730 Z" stroke-width="2.4" fill="#071b36" fill-opacity="0.45" />
+    <path d="M 745 730 A 215 200 0 0 1 1175 730" stroke-width="1.2" stroke-dasharray="6 5" />
+    <path d="M 810 730 A 150 140 0 0 1 1110 730" stroke-width="1.1" />
+    <line x1="960" y1="480" x2="960" y2="730" stroke-width="1.2" stroke-dasharray="5 5" />
+    <line x1="870" y1="505" x2="870" y2="730" stroke-width="0.9" stroke-dasharray="4 6" />
+    <line x1="1050" y1="505" x2="1050" y2="730" stroke-width="0.9" stroke-dasharray="4 6" />
+
+    <!-- Airlock Bay -->
+    <rect x="550" y="655" width="140" height="75" stroke-width="2" fill="#06172e" fill-opacity="0.55" />
+    <rect x="520" y="675" width="30" height="55" stroke-width="1.6" />
+    <line x1="550" y1="692" x2="690" y2="692" stroke-width="1" stroke-dasharray="4 4" />
+
+    <!-- Solar Array Wings -->
+    <rect x="250" y="610" width="230" height="60" stroke-width="1.6" />
+    <line x1="250" y1="640" x2="480" y2="640" stroke-width="1" />
+    <line x1="308" y1="610" x2="308" y2="670" stroke-width="1" />
+    <line x1="365" y1="610" x2="365" y2="670" stroke-width="1" />
+    <line x1="422" y1="610" x2="422" y2="670" stroke-width="1" />
+    <line x1="365" y1="670" x2="365" y2="730" stroke-width="2" />
+
+    <rect x="1440" y="610" width="230" height="60" stroke-width="1.6" />
+    <line x1="1440" y1="640" x2="1670" y2="640" stroke-width="1" />
+    <line x1="1498" y1="610" x2="1498" y2="670" stroke-width="1" />
+    <line x1="1555" y1="610" x2="1555" y2="670" stroke-width="1" />
+    <line x1="1612" y1="610" x2="1612" y2="670" stroke-width="1" />
+    <line x1="1555" y1="670" x2="1555" y2="730" stroke-width="2" />
+
+    <!-- Optical Comms Mast -->
+    <line x1="1270" y1="730" x2="1270" y2="470" stroke-width="2" />
+    <path d="M 1235 470 Q 1270 430 1305 470" stroke-width="1.8" />
+    <line x1="1270" y1="450" x2="1450" y2="270" stroke="#ffb800" stroke-width="1.4" stroke-dasharray="6 6" />
+  </g>
+
+  <!-- BP-02: SatGPU Orbital Node Silhouette -->
+  <g transform="translate(1450, 270)" stroke="#00e5ff" fill="none" opacity="0.88">
+    <rect x="-34" y="-20" width="68" height="40" rx="4" stroke-width="1.8" fill="#061c38" fill-opacity="0.65" />
+    <rect x="-110" y="-12" width="68" height="24" stroke-width="1.3" />
+    <rect x="42" y="-12" width="68" height="24" stroke-width="1.3" />
+    <circle cx="0" cy="24" r="7" stroke="#ffb800" stroke-width="1.4" />
+    <path d="M -6 30 L -54 125 L 54 125 L 6 30" stroke="#00e5ff" stroke-width="0.9" stroke-dasharray="4 4" opacity="0.65" />
+  </g>
+
+  <!-- NASA DSN Force Push Trajectory Arcs -->
+  <g fill="none" stroke="#ffb800" opacity="0.52">
+    <path d="M 240 240 Q 600 110 960 480" stroke-width="1.4" stroke-dasharray="7 5" />
+    <path d="M 1680 240 Q 1340 120 960 480" stroke-width="1.4" stroke-dasharray="7 5" />
+    <circle cx="240" cy="240" r="8" stroke-width="1.4" />
+    <circle cx="1680" cy="240" r="8" stroke-width="1.4" />
+  </g>
+
+  <!-- 5 Highlighted Build-Sequence Badges & Leader Lines -->
+  <g font-family="Courier New, monospace">
+    <!-- 01 -->
+    <line x1="365" y1="596" x2="365" y2="510" stroke="#ffb800" stroke-width="1.5" stroke-dasharray="4 4" />
+    <circle cx="365" cy="492" r="18" fill="#08142b" stroke="#ffb800" stroke-width="2" />
+    <text x="365" y="497" fill="#ffb800" font-size="13" font-weight="bold" text-anchor="middle">01</text>
+    <text x="392" y="497" fill="#ffd970" font-size="12" font-weight="bold">SOLAR ARRAY POWER BUS (185 kW)</text>
+
+    <!-- 02 -->
+    <line x1="600" y1="644" x2="600" y2="415" stroke="#00e5ff" stroke-width="1.5" stroke-dasharray="4 4" />
+    <circle cx="600" cy="397" r="18" fill="#08142b" stroke="#00e5ff" stroke-width="2" />
+    <text x="600" y="402" fill="#00e5ff" font-size="13" font-weight="bold" text-anchor="middle">02</text>
+    <text x="627" y="402" fill="#8eeeff" font-size="12" font-weight="bold">EVA AIRLOCK &amp; DUST SEAL</text>
+
+    <!-- 03 -->
+    <line x1="960" y1="465" x2="960" y2="325" stroke="#00ff66" stroke-width="1.5" stroke-dasharray="4 4" />
+    <circle cx="960" cy="307" r="18" fill="#08142b" stroke="#00ff66" stroke-width="2" />
+    <text x="960" y="312" fill="#00ff66" font-size="13" font-weight="bold" text-anchor="middle">03</text>
+    <text x="987" y="312" fill="#8effb8" font-size="12" font-weight="bold">PRESSURIZED COMMAND DOME (54 m)</text>
+
+    <!-- 04 -->
+    <line x1="1270" y1="425" x2="1270" y2="215" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="4 4" />
+    <circle cx="1270" cy="197" r="18" fill="#08142b" stroke="#c084fc" stroke-width="2" />
+    <text x="1270" y="202" fill="#c084fc" font-size="13" font-weight="bold" text-anchor="middle">04</text>
+    <text x="1297" y="202" fill="#e2c6ff" font-size="12" font-weight="bold">OPTICAL COMMS MAST (25 m)</text>
+
+    <!-- 05 -->
+    <line x1="1540" y1="205" x2="1620" y2="140" stroke="#ffb800" stroke-width="1.5" stroke-dasharray="4 4" />
+    <circle cx="1638" cy="130" r="18" fill="#08142b" stroke="#ffb800" stroke-width="2" />
+    <text x="1638" y="135" fill="#ffb800" font-size="13" font-weight="bold" text-anchor="middle">05</text>
+    <text x="1664" y="135" fill="#ffd970" font-size="12" font-weight="bold">SATGPU RING + NASA DSN</text>
+  </g>
+
+  <!-- Dimension Callouts -->
+  <g stroke="#4f8ed6" stroke-width="1" fill="#7ec4ff" font-family="Courier New, monospace" font-size="13" opacity="0.78">
+    <line x1="690" y1="780" x2="1230" y2="780" />
+    <line x1="690" y1="766" x2="690" y2="794" />
+    <line x1="1230" y1="766" x2="1230" y2="794" />
+    <text x="960" y="802" text-anchor="middle">HABITAT SPAN: 54.0 m // PRESSURIZED CORE</text>
+    <line x1="1260" y1="480" x2="1260" y2="730" />
+    <text x="1285" y="610">25.0 m ELEV</text>
+  </g>
+
+  <!-- Bottom-Left Build Sequence Legend -->
+  <g transform="translate(52, 910)" font-family="Courier New, monospace">
+    <rect width="600" height="118" fill="#041024" fill-opacity="0.88" stroke="#ffb800" stroke-width="1.4" />
+    <line x1="0" y1="34" x2="600" y2="34" stroke="#22528f" stroke-width="1" />
+    <text x="14" y="22" fill="#ffb800" font-size="13" font-weight="bold">BUILD SEQUENCE // 01 -&gt; 02 -&gt; 03 -&gt; 04 -&gt; 05</text>
+    <text x="14" y="56" fill="#ffd970" font-size="11">01 SOLAR POWER BUS   02 EVA AIRLOCK BAY   03 GEODESIC COMMAND DOME</text>
+    <text x="14" y="80" fill="#8eeeff" font-size="11">04 OPTICAL MAST      05 SATGPU ORBITAL RING &amp; NASA DSN FORCE-PUSH LOCK</text>
+    <text x="14" y="104" fill="#00ff66" font-size="11">STATUS: SEQUENCE HIGHLIGHTED // READY FOR MISSION CONTROL OVERLAY</text>
+  </g>
+
+  <!-- Bottom-Right Corner Title Block -->
+  <g transform="translate(1410, 910)" font-family="Courier New, monospace">
+    <rect width="460" height="118" fill="#041024" fill-opacity="0.88" stroke="#2b64a8" stroke-width="1.5" />
+    <line x1="0" y1="36" x2="460" y2="36" stroke="#22528f" stroke-width="1" />
+    <line x1="0" y1="76" x2="460" y2="76" stroke="#22528f" stroke-width="1" />
+    <text x="14" y="24" fill="#ffb800" font-size="14" font-weight="bold">@MOONBASE.BOT // BLUEPRINT SCHEMATIC</text>
+    <text x="14" y="60" fill="#7ec4ff" font-size="12">SYS: LUNAR DOME + SATGPU + NASA DSN RELAY</text>
+    <text x="14" y="100" fill="#00ff66" font-size="12">OWNER: ANDREW T MIDDLETON // REV 1.1</text>
+  </g>
+</svg>

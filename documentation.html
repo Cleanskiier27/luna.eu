@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LunaRecycle installation, usage, deployment, and testing documentation.">
+  <title>LunaRecycle Documentation</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #e9edff; background: #080a13; line-height: 1.65; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(circle at 10% 0, rgba(79,70,229,.28), transparent 38%); }
+    header, main, footer { position: relative; width: min(940px, calc(100% - 32px)); margin: auto; }
+    header { padding: 44px 0 30px; }
+    a { color: #a5b4fc; }
+    .back { display: inline-block; padding: 9px 14px; border: 1px solid #323955; border-radius: 999px; text-decoration: none; background: #11162a; }
+    h1 { margin: 24px 0 8px; font-size: clamp(2.5rem, 7vw, 5rem); line-height: 1; letter-spacing: -.055em; }
+    header p { color: #9ea7c4; }
+    main { padding-bottom: 50px; }
+    section { margin: 18px 0; padding: 26px; border: 1px solid #29304d; border-radius: 18px; background: rgba(15,20,39,.86); }
+    h2 { margin-top: 0; color: #d9ddff; }
+    ol, ul { padding-left: 24px; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    code { color: #c4b5fd; }
+    pre { overflow-x: auto; padding: 16px; border-radius: 12px; background: #070a13; }
+    .phase { display: inline-block; margin-right: 8px; padding: 3px 9px; border-radius: 999px; color: #c7d2fe; background: #312e81; font-size: .75rem; font-weight: 700; }
+    footer { padding: 0 0 36px; color: #77809c; text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="back" href="index.html">← LunaRecycle home</a>
+    <h1>Documentation</h1>
+    <p>Project operation, validation, publishing, and delivery reference.</p>
+  </header>
+  <main>
+    <section><h2><span class="phase">PHASE 1</span>Install and run locally</h2>
+      <p>Clone the repository, open its static application directory, and serve it over HTTP. A local server is recommended because browser APIs require a secure or localhost origin.</p>
+      <pre>git clone https://github.com/Cleanskiier27/luna.eu.git
+cd luna.eu/GITREPOVSLOCAL
+python -m http.server 8000
+# Open http://127.0.0.1:8000/</pre>
+    </section>
+    <section><h2><span class="phase">PHASE 2</span>Use the application</h2>
+      <ol><li>Launch the NetworkBuster application.</li><li>Select an operating system and target device.</li><li>Review optional configuration settings.</li><li>Use agent mode only for supported local workflows.</li><li>Open HTML tools to scan and organize local HTML files.</li></ol>
+    </section>
+    <section><h2><span class="phase">PHASE 3</span>Refresh the local HTML catalog</h2>
+      <pre>powershell -ExecutionPolicy Bypass -File .\html-fetch-tool\fetch-html.ps1 -NoOpen
+# Optional custom directory:
+powershell -ExecutionPolicy Bypass -File .\html-fetch-tool\fetch-html.ps1 -ScanRoot C:\path\to\scan -NoOpen</pre>
+      <p>The generated browser catalog is local data. Review file paths before publishing or sharing.</p>
+    </section>
+    <section><h2><span class="phase">PHASE 4</span>Test and validate</h2>
+      <ul><li>Confirm the landing page, application, history, and HTML tool all return HTTP 200.</li><li>Validate HTML files with a standards parser.</li><li>Scan committed content for access tokens and GitHub credentials.</li><li>Review GitHub Actions before merging deployment changes.</li></ul>
+    </section>
+    <section><h2><span class="phase">PHASE 5</span>Publish</h2>
+      <p>Push to <code>main</code>. GitHub Actions runs the test phase, packages <code>GITREPOVSLOCAL</code>, and deploys it to GitHub Pages.</p>
+      <p><strong>Production:</strong> <a href="https://cleanskiier27.github.io/luna.eu/">https://cleanskiier27.github.io/luna.eu/</a></p>
+    </section>
+    <section><h2><span class="phase">PHASE 6</span>Package delivery</h2>
+      <p>Download the source archive from GitHub or create a local ZIP after committing. Exclude generated local scan output and the Git metadata directory.</p>
+    </section>
+  </main>
+  <footer>LunaRecycle documentation · Generated for the published main build</footer>
+</body>
+</html>

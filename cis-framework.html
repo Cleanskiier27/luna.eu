@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CIS Controls v8.1 Framework — Preciseliens &amp; LunaRecycle</title>
+  <link rel="canonical" href="https://cleanskiier27.github.io/luna.eu/cis-framework.html" />
+  <style>
+    :root{
+      color-scheme:dark;
+      font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+      --bg:#080a13;
+      --card:rgba(15,20,40,.9);
+      --surface:#0b1022;
+      --border:#29314d;
+      --text:#eef2ff;
+      --muted:#99a4c0;
+      --accent:#818cf8;
+      --up:#34d399;
+      --warn:#fbbf24;
+      --down:#f87171;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;color:var(--text);
+      background:
+        radial-gradient(circle at 18% 0,#1e3a8a 0,transparent 38%),
+        radial-gradient(circle at 86% 12%,rgba(16,185,129,.18) 0,transparent 32%),
+        var(--bg);
+    }
+    .topbar{
+      position:sticky;top:0;z-index:20;
+      display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+      padding:12px 24px;border-bottom:1px solid var(--border);
+      background:rgba(8,10,19,.92);backdrop-filter:blur(8px);
+    }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1rem}
+    .shield{
+      width:32px;height:32px;border-radius:10px;display:grid;place-items:center;
+      background:linear-gradient(135deg,#059669,#4f46e5);font-size:1rem;
+    }
+    .nav{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+    .btn{
+      display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;
+      border:1px solid #323b5f;background:#14192d;color:#fff;text-decoration:none;
+      font:inherit;font-size:.85rem;cursor:pointer;transition:border-color .15s,transform .15s;
+    }
+    .btn:hover{border-color:var(--accent);transform:translateY(-1px)}
+    .btn.primary{background:linear-gradient(135deg,#059669,#4f46e5);border-color:#34d399}
+    .btn.small{padding:6px 12px;font-size:.8rem}
+    .wrap{width:min(1280px,calc(100% - 32px));margin:auto;padding:28px 0 56px;display:grid;gap:18px}
+    .card{padding:22px;border:1px solid var(--border);border-radius:20px;background:var(--card)}
+    .card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+    h1{margin:8px 0 10px;font-size:clamp(1.8rem,4.4vw,3.1rem);letter-spacing:-.04em;line-height:1.04}
+    h2{margin:0;font-size:1.2rem}
+    .sub{color:var(--muted);margin:0;max-width:860px;line-height:1.5}
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:999px;
+      background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.35);
+      color:#6ee7b7;font-size:.76rem;font-weight:600;
+    }
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:18px}
+    .kpi{padding:14px;border:1px solid #252e4c;border-radius:14px;background:var(--surface)}
+    .kpi .k{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+    .kpi .v{font-size:1.45rem;font-weight:700;margin-top:4px}
+    .kpi .s{font-size:.76rem;color:#a5b4fc;margin-top:2px}
+    .meter{height:10px;border-radius:999px;background:#1e2642;overflow:hidden;margin-top:14px}
+    .meter > div{height:100%;width:0;background:linear-gradient(90deg,#10b981,#6366f1);transition:width .5s}
+    .ig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+    @media(max-width:720px){.ig-grid{grid-template-columns:1fr}}
+    .ig-card{padding:11px 14px;border:1px solid #252e4c;border-radius:12px;background:var(--surface)}
+    .ig-card-top{display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;margin-bottom:6px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .filters button{
+      padding:6px 12px;border-radius:999px;border:1px solid #323b5f;background:#10162b;
+      color:#c7d2fe;cursor:pointer;font:inherit;font-size:.8rem;
+    }
+    .filters button.active{background:linear-gradient(135deg,#059669,#4f46e5);border-color:#34d399;color:#fff;font-weight:600}
+    .search-in{
+      padding:6px 12px;border-radius:999px;border:1px solid #323b5f;background:#090d19;
+      color:var(--text);font:inherit;font-size:.82rem;min-width:190px;
+    }
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:.86rem}
+    th,td{padding:10px 9px;border-bottom:1px solid #242d4a;text-align:left;vertical-align:top}
+    th{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.04em}
+    .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.74rem;font-weight:700}
+    .pill.pass{background:rgba(52,211,153,.15);color:#6ee7b7;border:1px solid rgba(52,211,153,.4)}
+    .pill.warn{background:rgba(251,191,36,.15);color:#fde68a;border:1px solid rgba(251,191,36,.4)}
+    .pill.fail{background:rgba(248,113,113,.15);color:#fca5a5;border:1px solid rgba(248,113,113,.4)}
+    .ig{display:inline-block;padding:2px 8px;border-radius:6px;background:#1b2340;color:#a5b4fc;font-family:ui-monospace,Consolas,monospace;font-size:.75rem}
+    .mono{font-family:ui-monospace,Consolas,monospace;font-size:.8rem}
+    .hdr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+    .hdr-item{padding:10px 12px;border:1px solid #242d4a;border-radius:12px;background:var(--surface)}
+    .hdr-item .k{font-size:.75rem;color:#a5b4fc;font-weight:700}
+    .hdr-item .v{font-size:.76rem;color:#dbeafe;margin-top:4px;word-break:break-word}
+    .self-test-out{margin-top:10px;padding:10px 14px;border-radius:12px;border:1px solid rgba(52,211,153,.35);background:rgba(16,185,129,.08);font-size:.82rem}
+    footer{text-align:center;color:#74809f;font-size:.84rem}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">CIS Controls v8.1 Framework · LunaRecycle</div>
+    <nav class="nav" aria-label="Site navigation">
+      <a class="btn" href="lunarecycle.html">LunaRecycle</a>
+      <a class="btn" href="directory.html">Apps and guides</a>
+      <a class="btn" href="crypto-dashboard/index.html">Easy Trade</a>
+      <a class="btn" href="crypto-dashboard/launch.html">Final launchpad</a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <section class="card">
+      <h1>CIS Security &amp; Compliance Posture</h1>
+      <p>The CIS Controls help teams prioritize safeguards for their systems and data. Start with Implementation Group 1 for essential cyber hygiene, then review the additional safeguards in Groups 2 and 3 as your needs grow.</p>
+      <a class="btn primary" href="https://www.cisecurity.org/controls/v8-1">Explore the official CIS Controls v8.1</a>
+    </section>
+    <section class="card">
+      <h2>Audit status: not assessed</h2>
+      <p>This public site does not run scans or connect to your device. To view evidence, run self-tests, or export results, open the CIS dashboard in your local desktop installation.</p>
+    </section>
+    <section class="card">
+      <h2>CIS control areas</h2>
+      <details>
+        <summary>1–6: Assets, data, and access</summary>
+        <ol><li>Enterprise asset inventory</li><li>Software inventory</li><li>Data protection</li><li>Secure configuration</li><li>Account management</li><li>Access control management</li></ol>
+      </details>
+      <details>
+        <summary>7–12: Maintaining defenses</summary>
+        <ol start="7"><li>Continuous vulnerability management</li><li>Audit log management</li><li>Email and browser protections</li><li>Malware defenses</li><li>Data recovery</li><li>Network infrastructure management</li></ol>
+      </details>
+      <details>
+        <summary>13–18: Monitoring, people, and response</summary>
+        <ol start="13"><li>Network monitoring and defense</li><li>Security awareness and skills training</li><li>Service provider management</li><li>Application software security</li><li>Incident response management</li><li>Penetration testing</li></ol>
+      </details>
+    </section>
+    <section class="card">
+      <h2>Explore Luna</h2>
+      <a class="btn" href="launch.html">Luna launchpad</a>
+      <a class="btn" href="documentation.html">Documentation</a>
+      <a class="btn" href="rocket-launch.html">Rocket launch simulation</a>
+    </section>
+  </main>
+</body>
+</html>

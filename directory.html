@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Andrew t Middleton">
+  <title>App &amp; guide directory | LunaRecycle</title>
+  <style>
+    :root { color-scheme: dark; font: 1rem/1.6 system-ui, sans-serif; background: #0c1525; color: #eef4ff; }
+    main { max-width: 52rem; margin: auto; padding: 2rem 1rem; }
+    a { color: #91ddff; } h1 { font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.1; }
+    input { font: inherit; padding: .5rem; width: min(100%, 32rem); box-sizing: border-box; display: block; }
+    ul { list-style: none; padding: 0; } li { border-top: 1px solid #39465b; padding: .65rem 0; }
+    li a { font-weight: 650; } summary { cursor: pointer; } :focus-visible { outline: 3px solid #ffdc7f; }
+  </style>
+</head>
+<body><main>
+  <nav aria-label="Breadcrumb"><a href="index.html">LunaRecycle home</a> / Directory</nav>
+  <h1>Apps and guides</h1>
+  <p>Find a tool to use or a guide to read. Search by name or topic, such as <em>simulation</em> or <em>device</em>.</p>
+  <div id="filters" hidden>
+    <label for="query">Search the directory</label>
+    <input id="query" type="search" placeholder="Name or topic">
+    <p id="count" role="status"></p>
+  </div>
+  <section><h2>Apps</h2><ul>
+    <li><a href="crypto-dashboard/markets.html">Preciseliens Forex &amp; Crypto Markets</a> &mdash; Explore currency pairs, crypto prices, portfolios and paper trades.</li>
+    <li><a href="crypto-dashboard/index.html">Crypto dashboard: Easy Trade</a> &mdash; Follow crypto and forex markets and practice with a paper portfolio.</li>
+    <li><a href="crypto-dashboard/launch.html">Final repository launchpad</a> &mdash; Browse Final branches, commits, pull requests, and files.</li>
+    <li><a href="mission-control-addon.html">Mission Control &amp; SatGPU Addon</a> &mdash; Live neural telemetry, SatGPU onboard camera, FPV 3D drive, global VPN grid, net intercept, and Swarm CMD console.</li>
+    <li><a href="session-player.html">Live session player</a> &mdash; Preview a tab or window on your device.</li>
+    <li><a href="launch.html">Launchpad</a> &mdash; Find launch and administration workflows.</li>
+    <li><a href="networkbuster/index.html">NetworkBuster</a> &mdash; Open the device registry.</li>
+    <li><a href="simulation3d.html">Orbital simulation</a> &mdash; Explore orbits in 3D.</li>
+    <li><a href="rocket-launch.html">Rocket launch simulation</a> &mdash; Explore a simulated launch.</li>
+    <li><a href="seo-toolkit.html">SEO toolkit</a> &mdash; Generate metadata for a web page.</li>
+    <li><a href="html-fetch-tool/index.html">HTML tools</a> &mdash; Browse the HTML fetch tool.</li>
+    <li><a href="imported-programs/index.html">Imported programs</a> &mdash; Browse the project collection.</li>
+    <li><a href="azure-devops-dashboard.html">Azure DevOps dashboard</a> &mdash; Explore projects and pipelines.</li>
+  </ul></section>
+  <section><h2>Guides</h2><ul>
+    <li><a href="drone-overlay-guide.html">Drone overlay and recursion guide</a> &mdash; Preview the simulated feed without capturing the player itself.</li>
+    <li><a href="documentation.html">LunaRecycle documentation</a> &mdash; Read the project and workflow reference.</li>
+    <li><a href="imported-programs/administration-docs.html">Administration guide</a> &mdash; Find systems engineering and cloud references.</li>
+    <li><a href="networkbuster/history.html">NetworkBuster history</a> &mdash; Read the device project's history.</li>
+    <li><a href="post/index.html">AI platform guide</a> &mdash; Locate the project console and its access requirements.</li>
+  </ul></section>
+  <details><summary>How to use this directory</summary>
+    <p>Select a title to open its page. With JavaScript enabled, typing filters the list immediately; clear the search box to see everything again. Your search stays in this browser.</p>
+  </details>
+  <p><small>&copy; Andrew t Middleton (cleanskiier27@networkbuster.net) &mdash; <a href="https://github.com/Cleanskiier27/luna.eu/tree/DATACENTRAL">DATACENTRAL</a></small></p>
+</main>
+<script>
+  const query = document.querySelector('#query');
+  const sections = document.querySelectorAll('main section');
+  function filterDirectory() {
+    const words = query.value.toLowerCase().trim().split(/\s+/);
+    let total = 0;
+    for (const section of sections) {
+      let matches = 0;
+      for (const item of section.querySelectorAll('li')) {
+        item.hidden = !words.every(word => item.textContent.toLowerCase().includes(word));
+        if (!item.hidden) matches++;
+      }
+      section.hidden = matches === 0;
+      total += matches;
+    }
+    document.querySelector('#count').textContent = total
+      ? `${total} ${total === 1 ? 'entry' : 'entries'} shown`
+      : 'No matches. Clear the search or try a different topic.';
+  }
+  query.addEventListener('input', filterDirectory);
+  filterDirectory();
+  document.querySelector('#filters').hidden = false;
+</script>
+</body></html>
