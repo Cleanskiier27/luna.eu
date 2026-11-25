@@ -14,7 +14,7 @@ All four are marked **In Progress**. A matching hash identifies the recorded fil
 
 ## Site directory
 
-The [site homepage](GITREPOVSLOCAL/index.html) is the LunaRecycle Launchpad with live Final repository telemetry. [CIS Controls v8.1](GITREPOVSLOCAL/cis-framework.html) and the previous [LunaRecycle homepage](GITREPOVSLOCAL/lunarecycle.html) remain available.
+The [LunaRecycle homepage](GITREPOVSLOCAL/index.html) links to [Preciseliens Forex & Crypto Markets](GITREPOVSLOCAL/crypto-dashboard/markets.html) and [Easy Trade](GITREPOVSLOCAL/crypto-dashboard/index.html). The public markets dashboard uses browser-accessible feeds and paper trading; local server integrations are not deployed. The [Final telemetry launchpad](GITREPOVSLOCAL/final-launchpad.html) and [CIS Controls v8.1](GITREPOVSLOCAL/cis-framework.html) remain available.
 
 To preview Luna locally, run `npm start` from the repository root with npm and
 Python 3 on your PATH (`python` must invoke Python 3). No `npm install` is

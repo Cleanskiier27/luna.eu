@@ -50,8 +50,9 @@ jobs:
           grep -q 'id="pipelines"' GITREPOVSLOCAL/azure-devops-dashboard.html
           grep -q 'aiplatform.googleapis.com' GITREPOVSLOCAL/post/index.html
           grep -q 'PHASE 6' GITREPOVSLOCAL/documentation.html
-          grep -q 'Live Final Telemetry' GITREPOVSLOCAL/index.html
-          grep -q 'cis-framework.html' GITREPOVSLOCAL/index.html
+          grep -q 'Live Final Telemetry' GITREPOVSLOCAL/final-launchpad.html
+          grep -q 'crypto-dashboard/markets.html' GITREPOVSLOCAL/index.html
+          test -f GITREPOVSLOCAL/crypto-dashboard/markets.html
           grep -q 'rocket-launch.html' GITREPOVSLOCAL/cis-framework.html
           ! grep -R -nE 'gho_[A-Za-z0-9]+|access_token=[A-Za-z0-9._-]+' GITREPOVSLOCAL README.md
           python3 - <<'PY'
