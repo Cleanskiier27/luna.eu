@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luna.eu Easy Trade · Crypto, Forex, Stocks &amp; Mining</title>
+  <link rel="canonical" href="https://cleanskiier27.github.io/luna.eu/crypto-dashboard/" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="easy-trade.css" />
+</head>
+<body class="et-body">
+  <header class="et-header">
+    <h1 class="et-brand">
+      <span class="et-logo">⚡</span>
+      <span>Luna.eu <span class="accent">Easy Trade</span></span>
+    </h1>
+
+    <nav class="tabs" aria-label="Main Navigation">
+      <a href="../index.html">Luna home</a>
+      <a href="../directory.html">Apps and guides</a>
+    </nav>
+
+    <p>Paper trading only. Balances and orders stay in this browser. Quotes may be simulated when live feeds are unavailable.</p>
+    <div class="et-wallet-strip">
+      <div class="et-balance-chip">
+        <div>
+          <span class="k">Total Equity</span>
+          <span id="et-equity" class="v fx-mono">$25,000.00</span>
+        </div>
+        <div>
+          <span class="k">Buying Power</span>
+          <span id="et-cash" class="v fx-mono">$25,000.00</span>
+        </div>
+        <div>
+          <span class="k">Total P&amp;L</span>
+          <span id="et-pnl" class="v fx-mono muted">$0.00</span>
+        </div>
+      </div>
+
+      <button id="et-import-btn" class="primary" style="font-size:0.82rem;padding:0.35rem 0.72rem" title="Import earnings from Mining, Forex, Crypto Ledger, PayPal, or CSV/JSON">⬇ Import Earnings</button>
+      <button id="et-mode-pill" class="et-mode-pill" title="View paper wallet & live broker readiness">Paper Mode</button>
+      <button id="et-refresh-btn" title="Refresh all market feeds">↻ Refresh</button>
+      <span id="et-feed-status" class="muted small-text">Connecting…</span>
+    </div>
+  </header>
+
+  <div class="et-shell">
+    <!-- ================ LEFT: UNIFIED MARKETS WATCHLIST ================ -->
+    <aside class="et-card et-watch-col">
+      <div class="toolbar" style="margin-bottom:0">
+        <h2 class="grow" style="margin:0">Markets <span id="et-asset-count" class="pill">0</span></h2>
+      </div>
+
+      <div class="et-cat-tabs" id="et-cat-tabs" role="tablist" aria-label="Market category">
+        <button data-cat="all" class="active">All</button>
+        <button data-cat="crypto">Crypto</button>
+        <button data-cat="forex">Forex</button>
+        <button data-cat="stocks">Stocks</button>
+        <button data-cat="mining">Mining</button>
+      </div>
+
+      <div class="et-search-row">
+        <input id="et-search" type="search" placeholder="Search BTC, EUR/USD, NVDA, MARA…" aria-label="Search markets" />
+      </div>
+
+      <div id="et-market-list" class="et-market-list">
+        <div class="muted small-text" style="padding:1rem;text-align:center">Loading Crypto, Forex, Stocks &amp; Mining feeds…</div>
+      </div>
+    </aside>
+
+    <!-- ================ CENTER: ASSET CHART + MINING HUB ================ -->
+    <section class="et-center-col">
+      <div class="et-card" id="et-asset-hero">
+        <div class="et-hero-top">
+          <div class="et-hero-id">
+            <div class="et-hero-title">
+              <span id="et-sel-badge" class="et-badge crypto">CRYPTO</span>
+              <h2 id="et-sel-symbol">BTC</h2>
+              <span id="et-sel-name" class="muted">Bitcoin</span>
+              <span id="et-sel-source" class="pill">—</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-top:0.2rem">
+              <span id="et-sel-signal" class="lean neutral">Pulse: Loading</span>
+              <span id="et-sel-holding" class="muted small-text">Owned: 0</span>
+            </div>
+          </div>
+
+          <div class="et-hero-price-box">
+            <div id="et-sel-price" class="et-big-price fx-mono">—</div>
+            <div id="et-sel-change" class="small-text fx-mono muted">—</div>
+          </div>
+        </div>
+
+        <div class="et-quick-stats">
+          <div class="et-mini-stat"><span class="k">24h / Day High</span><span id="et-sel-high" class="v fx-mono">—</span></div>
+          <div class="et-mini-stat"><span class="k">24h / Day Low</span><span id="et-sel-low" class="v fx-mono">—</span></div>
+          <div class="et-mini-stat"><span id="et-sel-extra-label" class="k">Market Metric</span><span id="et-sel-extra" class="v fx-mono">—</span></div>
+          <div class="et-mini-stat"><span class="k">Your Position</span><span id="et-sel-posval" class="v fx-mono">$0.00</span></div>
+        </div>
+
+        <div class="et-chart-toolbar">
+          <div class="ranges" id="et-ranges" style="margin:0">
+            <button data-range="1d">1D</button>
+            <button data-range="7d">7D</button>
+            <button data-range="30d" class="active">30D</button>
+            <button data-range="90d">90D</button>
+          </div>
+          <span id="et-chart-status" class="muted small-text">Hover chart for exact price</span>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="et-chart" height="270"></canvas>
+          <div id="et-chart-tip" class="tip" hidden></div>
+        </div>
+      </div>
+
+      <!-- ================ INTEGRATED MINING HUB ================ -->
+      <div class="et-card" id="et-mining-hub">
+        <div class="toolbar">
+          <h2 class="grow" style="margin:0">⛏️ Easy Mining Hub <span id="et-sim-hashrate" class="pill up">0 H/s</span></h2>
+          <span id="et-sim-daily" class="pill fx-mono">Est. $0.00 / day</span>
+          <label class="small-text muted" style="display:inline-flex;align-items:center;gap:0.35rem;cursor:pointer">
+            <input type="checkbox" id="et-sim-autosell" /> Auto-convert to USD
+          </label>
+          <button id="et-sim-harvest-btn" class="primary">Harvest $0.00</button>
+        </div>
+
+        <!-- Hardware XMRig Miner Quick Bar -->
+        <div class="et-hw-bar">
+          <div>
+            <strong>Local CPU Miner (XMRig · Monero)</strong>
+            <span id="et-hw-pill" class="pill" style="margin-left:0.4rem">Checking…</span>
+            <div id="et-hw-msg" class="muted small-text" style="margin-top:0.15rem">Connecting to local server…</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap">
+            <span class="small-text muted">CPU <strong id="et-hw-cpu-val">50%</strong></span>
+            <input id="et-hw-cpu" type="range" min="10" max="100" step="10" value="50" style="width:90px;padding:0" aria-label="Miner CPU percent" />
+            <span id="et-hw-hr" class="fx-mono small-text">—</span>
+            <span id="et-hw-pending" class="fx-mono small-text muted">—</span>
+            <button id="et-hw-toggle" class="big-btn" style="padding:0.4rem 0.9rem;font-size:0.85rem" disabled>Start XMRig</button>
+          </div>
+        </div>
+
+        <!-- Paper Cloud Mining Rigs -->
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+          <h3 style="margin:0">Virtual Paper Mining Rigs <span class="muted">(instant live yield into your Easy Trade wallet)</span></h3>
+          <span id="et-sim-unclaimed" class="fx-mono small-text up">Unclaimed: $0.0000</span>
+        </div>
+
+        <div id="et-rig-shop" class="et-mining-grid"></div>
+        <div id="et-owned-rigs" class="small-text muted">No virtual rigs deployed yet — deploy one above using paper USD to start earning live crypto yield.</div>
+      </div>
+    </section>
+
+    <!-- ================ RIGHT: 1-CLICK EASY TRADE TICKET ================ -->
+    <aside class="et-card et-ticket-col">
+      <div class="toolbar" style="margin-bottom:0">
+        <h2 class="grow" style="margin:0">Quick Order</h2>
+        <select id="et-exec-mode" aria-label="Execution mode" style="font-size:0.8rem;padding:0.25rem 0.5rem">
+          <option value="paper">Paper ($ Virtual)</option>
+          <option value="live-coinbase" disabled>Live · Coinbase</option>
+          <option value="live-kraken" disabled>Live · Kraken</option>
+          <option value="live-binanceus" disabled>Live · Binance.US</option>
+        </select>
+      </div>
+
+      <div class="et-ticket-tabs" id="et-ticket-tabs" role="tablist">
+        <button data-side="buy" class="active">Buy</button>
+        <button data-side="sell">Sell</button>
+        <button data-side="swap">Quick Swap</button>
+      </div>
+
+      <!-- BUY / SELL PANEL -->
+      <div id="et-bs-panel">
+        <div class="et-input-box">
+          <div class="et-input-top">
+            <span id="et-amount-label">Amount in USD</span>
+            <button type="button" id="et-input-mode-btn" style="padding:0.12rem 0.45rem;font-size:0.74rem">Switch to Units</button>
+          </div>
+          <div class="et-input-row">
+            <input id="et-amount" type="number" step="any" min="0" value="500" placeholder="0.00" aria-label="Order amount" />
+            <span id="et-amount-unit" class="et-unit-tag">USD</span>
+          </div>
+        </div>
+
+        <div class="et-presets" id="et-presets">
+          <button type="button" data-preset="100">$100</button>
+          <button type="button" data-preset="250">$250</button>
+          <button type="button" data-preset="500">$500</button>
+          <button type="button" data-preset="1000">$1k</button>
+          <button type="button" data-preset="50%">50%</button>
+          <button type="button" data-preset="100%">MAX</button>
+        </div>
+
+        <button type="button" id="et-adv-toggle" class="et-adv-toggle">▸ Optional: Limit Price, Stop-Loss &amp; Take-Profit</button>
+        <div id="et-adv-box" hidden>
+          <div class="et-adv-grid">
+            <label>Order Type
+              <select id="et-order-type">
+                <option value="market">Market (Instant)</option>
+                <option value="limit">Limit Order</option>
+              </select>
+            </label>
+            <label>Limit Price ($)
+              <input id="et-limit-price" type="number" step="any" min="0" placeholder="Market" />
+            </label>
+            <label>Stop-Loss (% below)
+              <input id="et-sl-pct" type="number" step="0.5" min="0" max="95" placeholder="e.g. 5" />
+            </label>
+            <label>Take-Profit (% above)
+              <input id="et-tp-pct" type="number" step="0.5" min="0" max="500" placeholder="e.g. 15" />
+            </label>
+          </div>
+        </div>
+
+        <div class="et-summary">
+          <div class="et-sum-row"><span class="muted">Asset</span><strong id="et-sum-asset">BTC</strong></div>
+          <div class="et-sum-row"><span class="muted">Est. Price</span><span id="et-est-price" class="fx-mono">—</span></div>
+          <div class="et-sum-row"><span class="muted">Est. Quantity</span><span id="et-est-qty" class="fx-mono">—</span></div>
+          <div class="et-sum-row"><span class="muted">Fee / Spread</span><span id="et-est-fee" class="fx-mono">$0.00 (0%)</span></div>
+          <div class="et-sum-row total"><span id="et-total-label">Total Cost</span><span id="et-est-total" class="fx-mono">$500.00</span></div>
+          <div class="et-sum-row small-text"><span id="et-avail-label" class="muted">Available Cash</span><span id="et-avail-val" class="fx-mono">$25,000.00</span></div>
+        </div>
+
+        <button id="et-submit-btn" class="et-cta buy">Buy BTC Now</button>
+      </div>
+
+      <!-- QUICK SWAP PANEL -->
+      <div id="et-swap-panel" hidden>
+        <div class="et-input-box">
+          <div class="et-input-top">
+            <span>From</span>
+            <button type="button" id="et-swap-max-btn" style="padding:0.12rem 0.45rem;font-size:0.74rem">MAX</button>
+          </div>
+          <div class="et-input-row" style="gap:0.5rem">
+            <select id="et-swap-from" style="max-width:130px;font-weight:700"></select>
+            <input id="et-swap-from-amt" type="number" step="any" min="0" value="500" placeholder="0.00" style="text-align:right" />
+          </div>
+        </div>
+
+        <div class="et-swap-flip">
+          <button type="button" id="et-swap-flip-btn" title="Flip swap assets">⇅</button>
+        </div>
+
+        <div class="et-input-box">
+          <div class="et-input-top">
+            <span>To (Estimated)</span>
+            <span id="et-swap-rate" class="fx-mono">—</span>
+          </div>
+          <div class="et-input-row" style="gap:0.5rem">
+            <select id="et-swap-to" style="max-width:130px;font-weight:700"></select>
+            <input id="et-swap-to-est" type="text" readonly value="0.00" style="text-align:right;color:var(--up)" />
+          </div>
+        </div>
+
+        <button id="et-swap-btn" class="et-cta swap">Swap Now (0% Paper Fee)</button>
+      </div>
+
+      <p id="et-ticket-msg" class="small-text muted" style="margin:0"></p>
+    </aside>
+
+    <!-- ================ BOTTOM: PORTFOLIO, ORDERS, HISTORY & ALLOCATION ================ -->
+    <section class="et-card et-bottom-wrap">
+      <div class="et-bottom-tabs" id="et-bottom-tabs">
+        <button data-btab="positions" class="active">My Positions <span id="et-pos-count" class="pill">0</span></button>
+        <button data-btab="orders">Pending Orders &amp; Triggers <span id="et-ord-count" class="pill">0</span></button>
+        <button data-btab="history">Trade &amp; Mining History <span id="et-hist-count" class="pill">0</span></button>
+        <button data-btab="allocation">Portfolio Breakdown</button>
+        <div style="margin-left:auto;display:flex;gap:0.5rem">
+          <button id="et-export-csv" style="font-size:0.8rem">⬇ Export CSV</button>
+          <button id="et-broker-btn" style="font-size:0.8rem">⚙ Paper Wallet / Live Brokers</button>
+        </div>
+      </div>
+
+      <!-- Positions -->
+      <div id="et-btab-positions" class="et-table-wrap">
+        <table class="et-table">
+          <thead>
+            <tr>
+              <th>Asset</th>
+              <th>Market</th>
+              <th>Quantity</th>
+              <th>Avg Entry</th>
+              <th>Live Price</th>
+              <th>Market Value</th>
+              <th>Unrealized P&amp;L</th>
+              <th>Quick Action</th>
+            </tr>
+          </thead>
+          <tbody id="et-positions-body"></tbody>
+        </table>
+        <p id="et-positions-empty" class="muted small-text" style="padding:0.75rem 0">No open positions yet. Pick any Crypto, Forex pair, Stock, or Mining Stock on the left and click Buy.</p>
+      </div>
+
+      <!-- Pending Limit / TP / SL -->
+      <div id="et-btab-orders" class="et-table-wrap" hidden>
+        <table class="et-table">
+          <thead>
+            <tr>
+              <th>Asset</th>
+              <th>Trigger Type</th>
+              <th>Side</th>
+              <th>Target Price</th>
+              <th>Current Price</th>
+              <th>Qty / USD</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="et-orders-body"></tbody>
+        </table>
+        <p id="et-orders-empty" class="muted small-text" style="padding:0.75rem 0">No pending Limit, Stop-Loss, or Take-Profit triggers.</p>
+      </div>
+
+      <!-- History -->
+      <div id="et-btab-history" class="et-table-wrap" hidden>
+        <table class="et-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Asset</th>
+              <th>Market</th>
+              <th>Quantity</th>
+              <th>Price</th>
+              <th>Value (USD)</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="et-history-body"></tbody>
+        </table>
+        <p id="et-history-empty" class="muted small-text" style="padding:0.75rem 0">No trades or mining harvests yet.</p>
+      </div>
+
+      <!-- Allocation -->
+      <div id="et-btab-allocation" hidden>
+        <div class="et-alloc-grid">
+          <canvas id="et-alloc-canvas" width="220" height="220"></canvas>
+          <div>
+            <ul id="et-alloc-legend" class="legend" style="margin-bottom:1rem"></ul>
+            <div id="et-perf-stats" class="stats-grid small"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================ MODAL: PAPER WALLET & LIVE BROKER HOOKUP ================ -->
+  <div id="et-modal" class="et-modal-backdrop" hidden>
+    <div class="et-modal">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">Paper Wallet &amp; Live Exchange Readiness</h2>
+        <button id="et-modal-close">✕</button>
+      </div>
+
+      <h3>Virtual Paper Account</h3>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem">
+        <input id="et-topup-amt" type="number" min="100" step="100" value="10000" style="max-width:160px" />
+        <button id="et-topup-btn" class="primary">+ Add Paper USD</button>
+        <button id="et-reset-confirm-btn" style="border-color:var(--down);color:var(--down);margin-left:auto">Reset Account ($25k)</button>
+      </div>
+
+      <h3>Live Broker &amp; Hardware Connections (from <code>.env</code>)</h3>
+      <div id="et-broker-list"></div>
+      <p class="muted small-text" style="margin:0.5rem 0 0">
+        All trades default to safe Paper Trading. When you're ready to execute real crypto orders, configure API keys and set <code>TRADING_LIVE_ENABLED=true</code> in <code>.env</code>, then restart <code>server.js</code>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ================ MODAL: IMPORT EARNINGS ================ -->
+  <div id="et-import-modal" class="et-modal-backdrop" hidden>
+    <div class="et-modal" style="max-width:650px;max-height:88vh;overflow-y:auto">
+      <div class="toolbar">
+        <h2 class="grow" style="margin:0">⬇ Import Earnings into Easy Trade</h2>
+        <button id="et-import-close">✕</button>
+      </div>
+
+      <h3>1. Sync from Dashboard Sources (deduplicated)</h3>
+      <div id="et-import-sources" style="margin-bottom:0.85rem">
+        <div class="muted small-text">Scanning dashboard ledger, Forex P&amp;L, Mining pool, and PayPal…</div>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:1.1rem;flex-wrap:wrap">
+        <button id="et-import-sync-btn" class="primary">Import Selected Dashboard Earnings</button>
+        <button id="et-import-rescan-btn">↻ Rescan Sources</button>
+        <span id="et-import-sync-summary" class="small-text muted"></span>
+      </div>
+
+      <h3>2. Import Earnings from CSV or JSON File</h3>
+      <div class="et-input-box" style="margin-bottom:0.6rem">
+        <div class="et-input-top">
+          <span>Supports CSV (<code>date,source,asset,amount,usd,note</code>) or JSON array</span>
+          <button type="button" id="et-import-sample-btn" style="padding:0.12rem 0.45rem;font-size:0.74rem">Download Sample CSV</button>
+        </div>
+        <input id="et-import-file" type="file" accept=".csv,.json,text/csv,application/json" style="width:100%;font-size:0.85rem" />
+      </div>
+      <div id="et-import-file-preview" class="small-text muted" style="margin-bottom:0.85rem"></div>
+      <button id="et-import-file-btn" class="primary" style="margin-bottom:1.1rem" hidden>Credit Parsed File Earnings</button>
+
+      <h3>3. Quick Manual Earnings Credit</h3>
+      <form id="et-import-manual-form" style="margin-bottom:0.5rem">
+        <select id="et-imp-source" aria-label="Earnings source">
+          <option value="Mining Payout">Mining Payout</option>
+          <option value="Stock Dividend">Stock Dividend</option>
+          <option value="Forex Profit">Forex Profit</option>
+          <option value="Crypto Gain">Crypto Gain</option>
+          <option value="PayPal / Deposit">PayPal / Deposit</option>
+          <option value="Other Earnings">Other Earnings</option>
+        </select>
+        <select id="et-imp-asset" aria-label="Credit as">
+          <option value="USD">USD Cash</option>
+          <option value="crypto:bitcoin">Bitcoin (BTC)</option>
+          <option value="crypto:ethereum">Ethereum (ETH)</option>
+          <option value="crypto:monero">Monero (XMR)</option>
+          <option value="crypto:solana">Solana (SOL)</option>
+        </select>
+        <input id="et-imp-amount" type="number" step="any" min="0.000001" placeholder="Amount (USD or units)" required />
+        <input id="et-imp-note" type="text" placeholder="Note (optional)" />
+        <button type="submit" class="primary">+ Credit Earnings</button>
+      </form>
+      <p id="et-import-msg" class="small-text muted" style="margin:0.4rem 0 0"></p>
+    </div>
+  </div>
+
+  <div id="et-toasts" class="et-toasts"></div>
+
+  <script src="easy-trade.js"></script>
+</body>
+</html>
